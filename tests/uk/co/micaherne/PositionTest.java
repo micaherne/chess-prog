@@ -27,7 +27,51 @@ public class PositionTest {
 	public void testMove() throws NotationException {
 		initialPos.move("D2-D4");
 		initialPos.move("G8-F6");
-		System.out.println(initialPos.toString());
+		initialPos.move("C2-C4");
+	}
+	
+	@Test(expected=NotationException.class)
+	public void testInvalidMove() throws NotationException {
+		initialPos.move("d2-d4");
+	}
+	
+	@Test
+	public void testToFEN() {
+		assertEquals(initialFEN, initialPos.toFEN());
+	}
+	
+	@Test
+	public void testEquals() throws FENException, NotationException {
+		Position finalPos = Position.fromFEN("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+		initialPos.move("E2-E4");
+		initialPos.move("C7-C5");
+		initialPos.move("G1-F3");
+		System.out.println(initialPos.toFEN());
+		System.out.println(finalPos.toFEN());
+		assertEquals(finalPos, initialPos);
 	}
 
+	@Test
+	public void testCastlingRights() throws FENException, NotationException {
+		Position finalPos = Position.fromFEN("r3k2r/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 1 2");
+		assertEquals("KQkq", finalPos.getCastling());
+		finalPos.move("A1-C1");
+		assertEquals("Kkq", finalPos.getCastling());
+		finalPos.move("H1-F1");
+		assertEquals("kq", finalPos.getCastling());
+		finalPos.move("H8-F8");
+		assertEquals("q", finalPos.getCastling());
+		finalPos.move("A8-C8");
+		assertEquals("", finalPos.getCastling());
+	}
+	
+	@Test
+	public void testCastlingRights2() throws NotationException, FENException {
+		Position finalPos = Position.fromFEN("r3k2r/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 1 2");
+		assertEquals("KQkq", finalPos.getCastling());
+		finalPos.move("E1-F1");
+		assertEquals("kq", finalPos.getCastling());
+		finalPos.move("E8-F8");
+		assertEquals("", finalPos.getCastling());
+	}
 }
