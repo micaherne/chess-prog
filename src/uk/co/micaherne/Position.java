@@ -1,5 +1,9 @@
 package uk.co.micaherne;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Position {
 
 	private char[][] pieces;
@@ -8,7 +12,7 @@ public class Position {
 	private int[] epSquare = null;
 	private int halfmove = 0;
 	private int fullmove = 1;
-
+	
 	public static enum NotationType {
 		COORDINATE
 	}
@@ -208,6 +212,46 @@ public class Position {
 			this.pieces[to[0]][to[1]] = movedPiece;
 			this.pieces[from[0]][from[1]] = ' ';
 		}
+	}
+	
+	public Set<String> allValidMoves(){
+		Set<String> result = new HashSet<String>();
+		char[] pieceNames;
+		if(whiteToMove) {
+			pieceNames = new char[]{'P', 'K', 'Q', 'B', 'N', 'R'};
+		} else {
+			pieceNames = new char[]{'p', 'k', 'q', 'b', 'n', 'r'};
+		}
+		
+		for(char pieceName : pieceNames) {
+			Set<int[]> positions = piecePositions(pieceName);
+			for(int[] pos : positions) {
+				result.addAll(validMoves(pos));
+			}
+		}
+		
+		return result;
+	}
+	
+	/** Find all valid moves for the piece at the given position
+	 * @param pos array of rank, file
+	 * @return Set of all valid moves in co-ordinate notation
+	 */
+	public Set<String> validMoves(int[] pos) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Set<int[]> piecePositions(char piece) {
+		Set<int[]> result = new HashSet<int[]>();
+		for(int i = 0; i < 8; i++) {
+			for(int j = 0; j < 8; j++) {
+				if(pieces[i][j] == piece) {
+					result.add(new int[]{ i, j });
+				}
+			}
+		}
+		return result;
 	}
 
 	private int[] coordPair(String coord) throws NotationException {

@@ -2,6 +2,11 @@ package uk.co.micaherne;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,5 +78,20 @@ public class PositionTest {
 		assertEquals("kq", finalPos.getCastling());
 		finalPos.move("E8-F8");
 		assertEquals("", finalPos.getCastling());
+	}
+	
+	@Test
+	public void testPiecePositions() {
+		Set<int[]> pos = initialPos.piecePositions('P');
+		assertEquals(8, pos.size());
+		for(int[] p : pos) {
+			assertEquals(1, p[0]);
+		}
+	}
+	
+	@Test
+	public void testAllValidMoves() {
+		Set<String> validMoves = initialPos.allValidMoves();
+		assertTrue(validMoves.contains("A2-A3"));
 	}
 }
