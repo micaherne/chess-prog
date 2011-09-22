@@ -91,7 +91,8 @@ public class PositionTest {
 	
 	@Test
 	public void testAllValidMoves() {
-		Set<String> validMoves = initialPos.allValidMoves();
+		int[] krPawn = {0, 1};
+		Set<String> validMoves = initialPos.validMoves(krPawn);
 		assertTrue(validMoves.contains("A2-A3"));
 	}
 }

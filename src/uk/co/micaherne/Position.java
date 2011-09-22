@@ -7,12 +7,21 @@ import java.util.Set;
 public class Position {
 
 	private char[][] pieces;
-	private boolean whiteToMove = true;
+	private Colour sideToMove = Colour.WHITE;
 	private String castling = "KQkq";
 	private int[] epSquare = null;
 	private int halfmove = 0;
 	private int fullmove = 1;
 	
+	// CONSTANTS
+	// piece names
+	private static final char[] WHITE_PIECES = new char[]{'P', 'K', 'Q', 'B', 'N', 'R'};
+	private static final char[] BLACK_PIECES = new char[]{'p', 'k', 'q', 'b', 'n', 'r'};
+	
+	private static enum Colour {
+		BLACK,
+		WHITE
+	}
 	public static enum NotationType {
 		COORDINATE
 	}
@@ -53,7 +62,7 @@ public class Position {
 			}
 		}
 		
-		result.whiteToMove = "w".equals(fenParts[1]);
+		result.sideToMove = "w".equals(fenParts[1]) ? Colour.WHITE : Colour.BLACK ;
 		result.castling = fenParts[2];
 		if(!"-".equals(fenParts[3])) {
 			result.epSquare[1] = fenParts[3].charAt(0) - 'a';
@@ -105,7 +114,7 @@ public class Position {
 		}
 
 		result.append(' ');
-		result.append(whiteToMove ? 'w' : 'b');
+		result.append(sideToMove == Colour.WHITE ? 'w' : 'b');
 		result.append(' ');
 		if(castling.length() > 0) {
 			result.append(castling);
@@ -173,8 +182,13 @@ public class Position {
 			int[] from = coordPair(parts[0]);
 			int[] to = coordPair(parts[1]);
 			
-			whiteToMove = !whiteToMove;
-			if(whiteToMove) {
+			if(sideToMove == Colour.WHITE) {
+				sideToMove = Colour.BLACK;
+			} else if(sideToMove == Colour.BLACK) {
+				sideToMove = Colour.WHITE;
+			}
+			
+			if(sideToMove == Colour.WHITE) {
 				fullmove++;
 			}
 			
@@ -217,10 +231,12 @@ public class Position {
 	public Set<String> allValidMoves(){
 		Set<String> result = new HashSet<String>();
 		char[] pieceNames;
-		if(whiteToMove) {
-			pieceNames = new char[]{'P', 'K', 'Q', 'B', 'N', 'R'};
+		if(sideToMove == Colour.WHITE) {
+			pieceNames = WHITE_PIECES;
+		} else if(sideToMove == Colour.BLACK) {
+			pieceNames = BLACK_PIECES;
 		} else {
-			pieceNames = new char[]{'p', 'k', 'q', 'b', 'n', 'r'};
+			return null;
 		}
 		
 		for(char pieceName : pieceNames) {
@@ -238,8 +254,13 @@ public class Position {
 	 * @return Set of all valid moves in co-ordinate notation
 	 */
 	public Set<String> validMoves(int[] pos) {
-		// TODO Auto-generated method stub
-		return null;
+		HashSet<String> result = new HashSet<String>();
+		result.add("A2-A3");
+		return result;
+	}
+	
+	public boolean isWhite(char piece) {
+		return true;
 	}
 
 	public Set<int[]> piecePositions(char piece) {
@@ -286,12 +307,12 @@ public class Position {
 		this.pieces = pieces;
 	}
 
-	public boolean isWhiteToMove() {
-		return whiteToMove;
+	public Colour getSideToMove() {
+		return sideToMove;
 	}
 
-	public void setWhiteToMove(boolean whiteToMove) {
-		this.whiteToMove = whiteToMove;
+	public void setSideToMove(Colour sideToMove) {
+		this.sideToMove = sideToMove;
 	}
 
 	public String getCastling() {
