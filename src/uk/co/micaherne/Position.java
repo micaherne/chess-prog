@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.w3c.dom.Notation;
-
 public class Position {
 
 	private char[][] pieces; // rank, file
@@ -335,7 +333,24 @@ public class Position {
 
 		}
 		
-		// TODO: CASTLING!
+		// Castling
+		if(getPiece(pos) == 'K' && Arrays.equals(pos, new int[] { 0, 4 })) {
+			if(getPiece(1, 6) == ' ' && getPiece(1, 7) == ' ' && castling.contains("K")) {
+				result.add(new int[] { 0, 4, 0, 6 });
+			}
+			if(getPiece(1, 4) == ' ' && getPiece(1, 3) == ' ' && getPiece(1, 2) == ' ' && castling.contains("Q")) {
+				result.add(new int[] { 0, 4, 0, 2 });
+			}
+		}
+		if(getPiece(pos) == 'k' && Arrays.equals(pos, new int[] { 7, 4 })) {
+			if(getPiece(8, 6) == ' ' && getPiece(8, 7) == ' ' && castling.contains("k")) {
+				result.add(new int[] { 7, 4, 7, 6 });
+			}
+			if(getPiece(8, 4) == ' ' && getPiece(8, 3) == ' ' && getPiece(8, 2) == ' ' && castling.contains("q")) {
+				result.add(new int[] { 7, 4, 7, 2 });
+			}
+		}
+		
 	}
 
 	private void validWhitePawnMoves(final int[] pos, HashSet<int[]> result) {
