@@ -10,6 +10,8 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.co.micaherne.Position.NotationType;
+
 public class PositionTest {
 
 	private static final String initialFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -91,10 +93,22 @@ public class PositionTest {
 	
 	@Test
 	public void testAllValidMoves() {
-		int[] krPawn = {1, 0};
+		/*int[] krPawn = {1, 0};
 		Set<int[]> validMoves = initialPos.validMoves(krPawn);
 		for(int[] move : validMoves) {
+			//System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
+		}
+		
+		int[] kn = { 0, 1 };
+		validMoves = initialPos.validMoves(kn);
+		for(int[] move : validMoves) {
 			System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
+		}*/
+		Set<int[]> validMoves = initialPos.allValidMoves();
+		assertEquals(20, validMoves.size());
+		for(int[] move : validMoves) {
+			System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
+			System.out.println(initialPos.moveNotation(move, NotationType.LONG_ALGEBRAIC));
 		}
 		//assertTrue(validMoves.contains("A2-A3"));
 	}
