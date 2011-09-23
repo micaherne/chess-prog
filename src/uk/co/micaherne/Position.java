@@ -170,9 +170,17 @@ public class Position {
 
 	public String moveNotation(int[] move, NotationType notationType) {
 		StringBuilder result = new StringBuilder();
+		char pieceMoved = pieces[move[0]][move[1]];
+		if(pieceMoved == 'k' || pieceMoved == 'K') {
+			if(Arrays.equals(move, new int[]{ 0, 4, 0, 2})
+					|| Arrays.equals(move, new int[] { 7, 4, 7, 2 })) {
+				return "0-0-0";
+			} else if(Arrays.equals(move, new int[] { 0, 4, 0, 6})
+					|| Arrays.equals(move, new int[] { 7, 4, 7, 6} )) {
+				return "0-0";
+			}
+		}
 		if(NotationType.LONG_ALGEBRAIC.equals(notationType)) {
-			//TODO: Castling!
-			char pieceMoved = pieces[move[0]][move[1]];
 			if(pieceMoved != 'p' && pieceMoved != 'P') {
 				String pieceMovedUpper = String.valueOf(pieceMoved).toUpperCase();
 				result.append(pieceMovedUpper);

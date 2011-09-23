@@ -114,6 +114,12 @@ public class PositionTest {
 	}
 	
 	@Test
+	public void testNotation() throws FENException {
+		Position finalPos = Position.fromFEN("r3k2r/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 1 2");
+		assertEquals("0-0", finalPos.moveNotation(new int[] { 0, 4, 0, 6}, NotationType.LONG_ALGEBRAIC));
+	}
+	
+	@Test
 	public void testIsColour() {
 		assertTrue(Position.isBlack('b'));
 		assertFalse(Position.isBlack('B'));
