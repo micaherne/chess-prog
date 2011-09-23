@@ -1,8 +1,11 @@
 package uk.co.micaherne;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import uk.co.micaherne.Position.Colour;
 
 public class Position {
 
@@ -15,10 +18,10 @@ public class Position {
 	
 	// CONSTANTS
 	// piece names
-	private static final char[] WHITE_PIECES = new char[]{'P', 'K', 'Q', 'B', 'N', 'R'};
-	private static final char[] BLACK_PIECES = new char[]{'p', 'k', 'q', 'b', 'n', 'r'};
+	private static final char[] WHITE_PIECES = new char[]{'B', 'K', 'N', 'P', 'Q', 'R'};
+	private static final char[] BLACK_PIECES = new char[]{'b', 'k', 'n', 'p', 'q', 'r'};
 	
-	private static enum Colour {
+	public static enum Colour {
 		BLACK,
 		WHITE
 	}
@@ -145,6 +148,10 @@ public class Position {
 	public char getPiece(int rank, int file) {
 		return this.pieces[rank - 1][file - 1];
 	}
+	
+	public char getPiece(int[] pos) {
+		return this.pieces[pos[0]][pos[1]];
+	}
 
 	@Override
 	public String toString() {
@@ -228,8 +235,8 @@ public class Position {
 		}
 	}
 	
-	public Set<String> allValidMoves(){
-		Set<String> result = new HashSet<String>();
+	public Set<int[]> allValidMoves(){
+		Set<int[]> result = new HashSet<int[]>();
 		char[] pieceNames;
 		if(sideToMove == Colour.WHITE) {
 			pieceNames = WHITE_PIECES;
@@ -251,16 +258,77 @@ public class Position {
 	
 	/** Find all valid moves for the piece at the given position
 	 * @param pos array of rank, file
-	 * @return Set of all valid moves in co-ordinate notation
+	 * @return Set of all valid moves as 4-long arrays
 	 */
-	public Set<String> validMoves(int[] pos) {
-		HashSet<String> result = new HashSet<String>();
-		result.add("A2-A3");
+	public Set<int[]> validMoves(int[] pos) {
+		HashSet<int[]> result = new HashSet<int[]>();
+		
+		char piece = pieces[pos[0]][pos[1]];
+		if(piece == ' ') {
+			return result;
+		}
+		
+		if(piece == 'P') {
+			int[] possible = new int[] { pos[0] + 1, pos[1] }; // forward one
+			if(getPiece(possible) == ' ') {
+				result.add(positionsToMove(pos, possible));
+			}
+			possible = new int[] { pos[0] + 2, pos[1] };
+			if(pos[0] == 1 && getPiece(possible) == ' ') { // forward two
+				result.add(positionsToMove(pos, possible));
+			}
+			possible = new int[] { pos[0] + 1, pos[1] - 1 };
+			if(pos[1] > 0 && isBlack(getPiece(possible))) { // take to left
+				result.add(positionsToMove(pos, possible));
+			}
+			if(Arrays.equals(possible, epSquare)) { // take to left e.p.
+				result.add(positionsToMove(pos, possible));
+			}
+			possible = new int[] { pos[0] + 1, pos[1] + 1 }; // take to right
+			if(pos[1] < 7 && isBlack(getPiece(possible))) {
+				result.add(positionsToMove(pos, possible));
+			}
+			if(Arrays.equals(possible, epSquare)) { // take to right e.p.
+				result.add(positionsToMove(pos, possible));
+			}
+		}
+		
 		return result;
 	}
 	
-	public boolean isWhite(char piece) {
-		return true;
+	private static int[] positionsToMove(int[] from, int[] to) {
+		int[] result = Arrays.copyOf(from, 4);
+		result[2] = to[0];
+		result[3] = to[1];
+		return result;
+	}
+	
+	public static Colour oppositeColour(Colour colour) {
+		if(Colour.WHITE.equals(colour)) {
+			return Colour.BLACK;
+		} else if(Colour.BLACK.equals(colour)) {
+			return Colour.WHITE;
+		} else {
+			return null;
+		}
+	}
+	
+	public static Colour pieceColour(char piece) {
+		if(isWhite(piece)) {
+			return Colour.WHITE;
+		} else if(isBlack(piece)) {
+			return Colour.BLACK;
+		} else {
+			return null;
+		}
+	}
+	
+	public static boolean isWhite(char piece) {
+		return Arrays.binarySearch(WHITE_PIECES, piece) >= 0;
+	}
+	
+	public static boolean isBlack(char piece) {
+		return Arrays.binarySearch(BLACK_PIECES, piece) >= 0;
 	}
 
 	public Set<int[]> piecePositions(char piece) {

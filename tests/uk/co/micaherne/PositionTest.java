@@ -91,8 +91,22 @@ public class PositionTest {
 	
 	@Test
 	public void testAllValidMoves() {
-		int[] krPawn = {0, 1};
-		Set<String> validMoves = initialPos.validMoves(krPawn);
-		assertTrue(validMoves.contains("A2-A3"));
+		int[] krPawn = {1, 0};
+		Set<int[]> validMoves = initialPos.validMoves(krPawn);
+		for(int[] move : validMoves) {
+			System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
+		}
+		//assertTrue(validMoves.contains("A2-A3"));
+	}
+	
+	@Test
+	public void testIsColour() {
+		assertTrue(Position.isBlack('b'));
+		assertFalse(Position.isBlack('B'));
+		assertTrue(Position.isWhite('B'));
+		assertFalse(Position.isWhite('b'));
+		assertTrue(Position.isWhite('P'));
+		
+		assertEquals(Position.Colour.WHITE, Position.pieceColour('P'));
 	}
 }
