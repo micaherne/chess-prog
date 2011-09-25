@@ -329,7 +329,6 @@ public class Position implements Cloneable {
 				
 				int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
 				
-				System.out.println("info string arse");
 				if (sideToMove == Colour.WHITE) {
 					sideToMove = Colour.BLACK;
 				} else if (sideToMove == Colour.BLACK) {

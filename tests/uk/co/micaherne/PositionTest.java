@@ -37,6 +37,12 @@ public class PositionTest {
 		initialPos.move("C2-C4");
 	}
 	
+	@Test
+	public void testIntMove() {
+		initialPos.move(new int[] { 0, 6, 2, 5 });
+		System.out.println(initialPos);
+	}
+	
 	@Test(expected=NotationException.class)
 	public void testInvalidMove() throws NotationException {
 		initialPos.move("d2-d4");
@@ -128,5 +134,11 @@ public class PositionTest {
 		assertTrue(Position.isWhite('P'));
 		
 		assertEquals(Position.Colour.WHITE, Position.pieceColour('P'));
+	}
+	
+	@Test
+	public void testSwitchColour() {
+		initialPos.move(new int[] { 0, 6, 2, 5 });
+		assertEquals(Position.Colour.BLACK, initialPos.getSideToMove());
 	}
 }
