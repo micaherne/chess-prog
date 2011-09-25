@@ -1,0 +1,1 @@
+java -Xmx512M -jar lib/chess-prog.jar uk.co.micaherne.Engine

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Position {
+public class Position implements Cloneable {
 
 	private char[][] pieces; // rank, file
 	private Colour sideToMove = Colour.WHITE;
@@ -19,6 +19,8 @@ public class Position {
 			'Q', 'R' };
 	private static final char[] BLACK_PIECES = new char[] { 'b', 'k', 'n', 'p',
 			'q', 'r' };
+	
+	public static final String initialFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 	public static enum Colour {
 		BLACK, WHITE
@@ -30,6 +32,18 @@ public class Position {
 
 	public Position() {
 		this.pieces = new char[8][8];
+	}
+	
+	public Position(Position other) {
+		this.pieces = new char[8][8];
+		for(int i = 0; i < other.pieces.length; i++) {
+			System.arraycopy(other.pieces[i], 0, this.pieces[i], 0, other.pieces[i].length);
+		}
+		sideToMove = other.sideToMove;
+		castling = other.castling;
+		epSquare = other.epSquare;
+		halfmove = other.halfmove;
+		fullmove = other.fullmove;
 	}
 
 	public static Position fromFEN(String fen) throws FENException {
@@ -169,18 +183,19 @@ public class Position {
 	public String moveNotation(int[] move, NotationType notationType) {
 		StringBuilder result = new StringBuilder();
 		char pieceMoved = pieces[move[0]][move[1]];
-		if(pieceMoved == 'k' || pieceMoved == 'K') {
-			if(Arrays.equals(move, new int[]{ 0, 4, 0, 2})
+		if (pieceMoved == 'k' || pieceMoved == 'K') {
+			if (Arrays.equals(move, new int[] { 0, 4, 0, 2 })
 					|| Arrays.equals(move, new int[] { 7, 4, 7, 2 })) {
 				return "0-0-0";
-			} else if(Arrays.equals(move, new int[] { 0, 4, 0, 6})
-					|| Arrays.equals(move, new int[] { 7, 4, 7, 6} )) {
+			} else if (Arrays.equals(move, new int[] { 0, 4, 0, 6 })
+					|| Arrays.equals(move, new int[] { 7, 4, 7, 6 })) {
 				return "0-0";
 			}
 		}
-		if(NotationType.LONG_ALGEBRAIC.equals(notationType)) {
-			if(pieceMoved != 'p' && pieceMoved != 'P') {
-				String pieceMovedUpper = String.valueOf(pieceMoved).toUpperCase();
+		if (NotationType.LONG_ALGEBRAIC.equals(notationType)) {
+			if (pieceMoved != 'p' && pieceMoved != 'P') {
+				String pieceMovedUpper = String.valueOf(pieceMoved)
+						.toUpperCase();
 				result.append(pieceMovedUpper);
 			}
 			result.append(Character.toChars(97 + move[1]));
@@ -191,7 +206,52 @@ public class Position {
 		}
 		return result.toString();
 	}
-	
+
+	public void move(int[] move) {
+		if (sideToMove == Colour.WHITE) {
+			sideToMove = Colour.BLACK;
+		} else if (sideToMove == Colour.BLACK) {
+			sideToMove = Colour.WHITE;
+		}
+
+		if (sideToMove == Colour.WHITE) {
+			fullmove++;
+		}
+
+		char movedPiece = this.pieces[move[0]][move[1]];
+		char takenPiece = this.pieces[move[2]][move[3]];
+
+		// Castling - rook moves
+		if (move[0] == 0 && move[1] == 0 && castling.contains("Q")) {
+			castling = castling.replace("Q", "");
+		}
+		if (move[0] == 0 && move[1] == 7 && castling.contains("K")) {
+			castling = castling.replace("K", "");
+		}
+		if (move[0] == 7 && move[1] == 0 && castling.contains("q")) {
+			castling = castling.replace("q", "");
+		}
+		if (move[0] == 7 && move[1] == 7 && castling.contains("k")) {
+			castling = castling.replace("k", "");
+		}
+
+		// Castling - king moves
+		if (movedPiece == 'K') {
+			castling = castling.replace("K", "").replace("Q", "");
+		}
+		if (movedPiece == 'k') {
+			castling = castling.replace("k", "").replace("q", "");
+		}
+
+		if (movedPiece == 'p' || movedPiece == 'P' || takenPiece != ' ') {
+			halfmove = 0;
+		} else {
+			halfmove++;
+		}
+		this.pieces[move[0]][move[1]] = ' ';
+		this.pieces[move[2]][move[3]] = movedPiece;
+	}
+
 	public void move(String move) throws NotationException {
 		move(move, Position.NotationType.COORDINATE);
 	}
@@ -257,9 +317,94 @@ public class Position {
 			}
 			this.pieces[to[0]][to[1]] = movedPiece;
 			this.pieces[from[0]][from[1]] = ' ';
+		} else if(NotationType.LONG_ALGEBRAIC.equals(notationType)) {
+				if (move.length() < 4 || move.length() > 5) {
+					throw new NotationException(
+							"Long algebraic notation must be in form XXXX");
+				}
+				if (!move.toLowerCase().equals(move)) {
+					throw new NotationException(
+							"Long algebraic notation must be in lower case");
+				}
+				
+				int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
+				
+				System.out.println("info string arse");
+				if (sideToMove == Colour.WHITE) {
+					sideToMove = Colour.BLACK;
+				} else if (sideToMove == Colour.BLACK) {
+					sideToMove = Colour.WHITE;
+				}
+
+				if (sideToMove == Colour.WHITE) {
+					fullmove++;
+				}
+
+				char movedPiece = this.pieces[m[0]][m[1]];
+				char takenPiece = this.pieces[m[2]][m[3]];
+
+				// Castling - rook moves
+				if (m[0] == 0 && m[1] == 0 && castling.contains("Q")) {
+					castling = castling.replace("Q", "");
+				}
+				if (m[0] == 0 && m[1] == 7 && castling.contains("K")) {
+					castling = castling.replace("K", "");
+				}
+				if (m[0] == 7 && m[1] == 0 && castling.contains("q")) {
+					castling = castling.replace("q", "");
+				}
+				if (m[0] == 7 && m[1] == 7 && castling.contains("k")) {
+					castling = castling.replace("k", "");
+				}
+
+				// Castling - king moves
+				if (movedPiece == 'K') {
+					castling = castling.replace("K", "").replace("Q", "");
+				}
+				if (movedPiece == 'k') {
+					castling = castling.replace("k", "").replace("q", "");
+				}
+
+				if (movedPiece == 'p' || movedPiece == 'P' || takenPiece != ' ') {
+					halfmove = 0;
+				} else {
+					halfmove++;
+				}
+				if(m.length == 5) {
+					this.pieces[m[2]][m[3]] = (char) m[5];
+				} else {
+					this.pieces[m[2]][m[3]] = movedPiece;
+				}
+				this.pieces[m[0]][m[1]] = ' ';
 		}
 	}
 
+	private int[] stringToMove(String moveString, NotationType notationType) {
+		int[] result = new int[5];
+		switch (notationType) {
+		case LONG_ALGEBRAIC:
+			// These look the wrong way round, but are correct!
+			result[0] = moveString.charAt(1) - '1';
+			result[1] = moveString.charAt(0) - 'a';
+			result[2] = moveString.charAt(3) - '1';
+			result[3] = moveString.charAt(2) - 'a';
+			if(moveString.length() == 5) {
+				result[4] = moveString.charAt(4);
+			}
+			break;
+
+		default:
+			break;
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Find all valid moves in the current position
+	 * TODO: Reject illegal moves such as those that put us into check
+	 * @return
+	 */
 	public Set<int[]> allValidMoves() {
 		Set<int[]> result = new HashSet<int[]>();
 		char[] pieceNames;
@@ -332,25 +477,29 @@ public class Position {
 			}
 
 		}
-		
+
 		// Castling
-		if(getPiece(pos) == 'K' && Arrays.equals(pos, new int[] { 0, 4 })) {
-			if(getPiece(1, 6) == ' ' && getPiece(1, 7) == ' ' && castling.contains("K")) {
+		if (getPiece(pos) == 'K' && Arrays.equals(pos, new int[] { 0, 4 })) {
+			if (getPiece(1, 6) == ' ' && getPiece(1, 7) == ' '
+					&& castling.contains("K")) {
 				result.add(new int[] { 0, 4, 0, 6 });
 			}
-			if(getPiece(1, 4) == ' ' && getPiece(1, 3) == ' ' && getPiece(1, 2) == ' ' && castling.contains("Q")) {
+			if (getPiece(1, 4) == ' ' && getPiece(1, 3) == ' '
+					&& getPiece(1, 2) == ' ' && castling.contains("Q")) {
 				result.add(new int[] { 0, 4, 0, 2 });
 			}
 		}
-		if(getPiece(pos) == 'k' && Arrays.equals(pos, new int[] { 7, 4 })) {
-			if(getPiece(8, 6) == ' ' && getPiece(8, 7) == ' ' && castling.contains("k")) {
+		if (getPiece(pos) == 'k' && Arrays.equals(pos, new int[] { 7, 4 })) {
+			if (getPiece(8, 6) == ' ' && getPiece(8, 7) == ' '
+					&& castling.contains("k")) {
 				result.add(new int[] { 7, 4, 7, 6 });
 			}
-			if(getPiece(8, 4) == ' ' && getPiece(8, 3) == ' ' && getPiece(8, 2) == ' ' && castling.contains("q")) {
+			if (getPiece(8, 4) == ' ' && getPiece(8, 3) == ' '
+					&& getPiece(8, 2) == ' ' && castling.contains("q")) {
 				result.add(new int[] { 7, 4, 7, 2 });
 			}
 		}
-		
+
 	}
 
 	private void validWhitePawnMoves(final int[] pos, HashSet<int[]> result) {
@@ -548,6 +697,56 @@ public class Position {
 		result[1] = coord.charAt(0) - 'A';
 		return result;
 	}
+	
+	public float evaluate() {
+		float blackMaterial = 0;
+		float whiteMaterial = 0;
+		
+		for(int i = 1; i <= 8; i++) {
+			
+			for(int j = 1; j <= 8; j++) {
+				
+				char piece = getPiece(i, j);
+				switch (piece) {
+				case 'p':
+					blackMaterial++;
+					break;
+				case 'P':
+					whiteMaterial++;
+					break;
+				case 'r':
+					blackMaterial += 5;
+					break;
+				case 'R':
+					whiteMaterial += 5;
+					break;
+				case 'n':
+					blackMaterial += 3;
+					break;
+				case 'N':
+					whiteMaterial += 3;
+					break;
+				case 'b':
+					blackMaterial += 3.2;
+					break;
+				case 'B': 
+					whiteMaterial += 3.2;
+					break;
+				case 'q':
+					blackMaterial += 9.4;
+					break;
+				case 'Q':
+					whiteMaterial += 9.4;
+				default:
+					break;
+				}
+			}
+			
+		}
+		
+		return whiteMaterial / (whiteMaterial + blackMaterial);
+	}
+	
 
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -558,6 +757,14 @@ public class Position {
 			return false;
 		Position other = (Position) obj;
 		return this.toFEN().equals(other.toFEN());
+	}
+
+	public Position clone() {
+		try {
+			return (Position) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 
 	// Getters and setters
