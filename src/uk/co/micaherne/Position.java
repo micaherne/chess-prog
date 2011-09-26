@@ -251,6 +251,27 @@ public class Position implements Cloneable {
 		}
 		this.pieces[move[0]][move[1]] = ' ';
 		this.pieces[move[2]][move[3]] = movedPiece;
+		
+		// Do castling
+		if(movedPiece == 'K' && Math.abs(move[3] - move[1]) == 2) {
+			if(move[3] == 6) {
+				this.pieces[0][7] = ' ';
+				this.pieces[0][5] = 'R';
+			}
+			if(move[3] == 2) {
+				this.pieces[0][0] = ' ';
+				this.pieces[0][3] = 'R';
+			}
+		} else if(movedPiece == 'k' && Math.abs(move[3] - move[1]) == 2) {
+			if(move[3] == 6) {
+				this.pieces[7][7] = ' ';
+				this.pieces[7][5] = 'r';
+			}
+			if(move[3] == 2) {
+				this.pieces[7][0] = ' ';
+				this.pieces[7][3] = 'r';
+			}
+		}
 	}
 
 	public void move(String move) throws NotationException {
@@ -329,7 +350,6 @@ public class Position implements Cloneable {
 				}
 				
 				int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
-				
 				move(m);
 		}
 	}
@@ -637,7 +657,6 @@ public class Position implements Cloneable {
 				bestMove = testMove;
 			}
 		}
-		
 		return bestMove;
 	}
 
