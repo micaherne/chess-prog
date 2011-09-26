@@ -14,7 +14,7 @@ public class Temp {
 	public static void main(String[] args) throws FENException {
 		String initialFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 		Position initialPos = Position.fromFEN(initialFEN);
-		Set<int[]> moves = initialPos.allValidMoves();
+		Set<int[]> moves = initialPos.allPseudoValidMoves();
 		Set<Position> positions = new HashSet<Position>();
 		for(int[] move: moves) {
 			Position pos = new Position(initialPos);
@@ -25,7 +25,7 @@ public class Temp {
 		}
 		Set<Position> positions2 = new HashSet<Position>();
 		for(Position p : positions) {
-			Set<int[]> moves2 = p.allValidMoves();
+			Set<int[]> moves2 = p.allPseudoValidMoves();
 			for(int[] move: moves2) {
 				Position pos = new Position(p);
 				//System.out.println(pos.moveNotation(move, NotationType.LONG_ALGEBRAIC));
@@ -36,7 +36,7 @@ public class Temp {
 		}
 		Set<Position> positions3 = new HashSet<Position>();
 		for(Position p : positions2) {
-			Set<int[]> moves3 = p.allValidMoves();
+			Set<int[]> moves3 = p.allPseudoValidMoves();
 			for(int[] move: moves3) {
 				Position pos = new Position(p);
 				//System.out.println(pos.moveNotation(move, NotationType.LONG_ALGEBRAIC));
@@ -51,7 +51,7 @@ public class Temp {
 		
 		Set<Position> positions4 = new HashSet<Position>();
 		for(Position p : positions3) {
-			Set<int[]> moves4 = p.allValidMoves();
+			Set<int[]> moves4 = p.allPseudoValidMoves();
 			for(int[] move: moves4) {
 				Position pos = new Position(p);
 				//System.out.println(pos.moveNotation(move, NotationType.LONG_ALGEBRAIC));

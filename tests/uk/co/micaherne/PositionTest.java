@@ -110,7 +110,7 @@ public class PositionTest {
 		for(int[] move : validMoves) {
 			System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
 		}*/
-		Set<int[]> validMoves = initialPos.allValidMoves();
+		Set<int[]> validMoves = initialPos.allPseudoValidMoves();
 		assertEquals(20, validMoves.size());
 		for(int[] move : validMoves) {
 			System.out.println("Move: " + move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);

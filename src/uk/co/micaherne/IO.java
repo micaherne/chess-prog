@@ -123,7 +123,6 @@ public class IO {
 					for(int i = 3; i < tokens.length; i++) {
 						doOutput("info string moving " + tokens[i]);
 						currentPosition.move(tokens[i], NotationType.LONG_ALGEBRAIC);
-						doOutput("info string " + currentPosition);
 					}
 				}
 			} catch (FENException e) {
@@ -137,16 +136,10 @@ public class IO {
 		} else {
 			throw new UCIException("Position must be startpos or fen");
 		}
-		for(String token : tokens) {
-			
-		}
 	}
 	
 	private void commandGo(String input) {
-		Set<int[]> moves = currentPosition.allValidMoves();
-		doOutput("info string " + currentPosition.getSideToMove());
-		Iterator<int[]> iterator = moves.iterator();
-		int[] bestMove = iterator.next();
+		int[] bestMove = currentPosition.bestMove();
 		doOutput("bestmove " + currentPosition.moveNotation(bestMove, NotationType.LONG_ALGEBRAIC));
 		currentPosition.move(bestMove);
 	}

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="chess-prog" default="build" basedir=".">
+<project name="chess-prog" default="dist" basedir=".">
 	<description>
         simple example build file
     </description>

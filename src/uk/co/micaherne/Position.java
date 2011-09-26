@@ -2,6 +2,7 @@ package uk.co.micaherne;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class Position implements Cloneable {
@@ -329,52 +330,7 @@ public class Position implements Cloneable {
 				
 				int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
 				
-				if (sideToMove == Colour.WHITE) {
-					sideToMove = Colour.BLACK;
-				} else if (sideToMove == Colour.BLACK) {
-					sideToMove = Colour.WHITE;
-				}
-
-				if (sideToMove == Colour.WHITE) {
-					fullmove++;
-				}
-
-				char movedPiece = this.pieces[m[0]][m[1]];
-				char takenPiece = this.pieces[m[2]][m[3]];
-
-				// Castling - rook moves
-				if (m[0] == 0 && m[1] == 0 && castling.contains("Q")) {
-					castling = castling.replace("Q", "");
-				}
-				if (m[0] == 0 && m[1] == 7 && castling.contains("K")) {
-					castling = castling.replace("K", "");
-				}
-				if (m[0] == 7 && m[1] == 0 && castling.contains("q")) {
-					castling = castling.replace("q", "");
-				}
-				if (m[0] == 7 && m[1] == 7 && castling.contains("k")) {
-					castling = castling.replace("k", "");
-				}
-
-				// Castling - king moves
-				if (movedPiece == 'K') {
-					castling = castling.replace("K", "").replace("Q", "");
-				}
-				if (movedPiece == 'k') {
-					castling = castling.replace("k", "").replace("q", "");
-				}
-
-				if (movedPiece == 'p' || movedPiece == 'P' || takenPiece != ' ') {
-					halfmove = 0;
-				} else {
-					halfmove++;
-				}
-				if(m.length == 5) {
-					this.pieces[m[2]][m[3]] = (char) m[5];
-				} else {
-					this.pieces[m[2]][m[3]] = movedPiece;
-				}
-				this.pieces[m[0]][m[1]] = ' ';
+				move(m);
 		}
 	}
 
@@ -400,11 +356,10 @@ public class Position implements Cloneable {
 	}
 
 	/**
-	 * Find all valid moves in the current position
-	 * TODO: Reject illegal moves such as those that put us into check
+	 * Find all pseudo-valid moves in the current position
 	 * @return
 	 */
-	public Set<int[]> allValidMoves() {
+	public Set<int[]> allPseudoValidMoves() {
 		Set<int[]> result = new HashSet<int[]>();
 		char[] pieceNames;
 		if (sideToMove == Colour.WHITE) {
@@ -423,6 +378,24 @@ public class Position implements Cloneable {
 		}
 
 		return result;
+	}
+	
+	public boolean inCheck(Colour colour) {
+		char ownKing;
+		if(colour == Colour.WHITE) {
+			ownKing = 'K';
+		} else {
+			ownKing = 'k';
+		}
+		Set<int[]> moves = allPseudoValidMoves();
+		for(int[] move : moves) {
+			char attackedPiece = getPiece(new int[] { move[2], move[3]} );
+			if(attackedPiece == ' ') continue;
+			if(attackedPiece == ownKing ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -456,7 +429,7 @@ public class Position implements Cloneable {
 		} else if (piece == 'k' || piece == 'K') {
 			validKingMoves(pos, result);
 		}
-
+		
 		return result;
 	}
 
@@ -507,7 +480,8 @@ public class Position implements Cloneable {
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] + 2, pos[1] };
-		if (pos[0] == 1 && getPiece(possible) == ' ') { // forward two
+		int[] intermediateSquare = new int[] { pos[0] + 1, pos[1]};
+		if (pos[0] == 1 && getPiece(possible) == ' ' && getPiece(intermediateSquare) == ' ') { // forward two
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] + 1, pos[1] - 1 };
@@ -532,7 +506,8 @@ public class Position implements Cloneable {
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] - 2, pos[1] };
-		if (pos[0] == 6 && getPiece(possible) == ' ') { // forward two
+		int[] intermediateSquare = new int[] { pos[0] - 1, pos[1]};
+		if (pos[0] == 6 && getPiece(possible) == ' ' && getPiece(intermediateSquare) == ' ') { // forward two
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] - 1, pos[1] + 1 };
@@ -638,6 +613,34 @@ public class Position implements Cloneable {
 				&& possible[1] < 8;
 	}
 
+	public int[] bestMove() {
+		Set<int[]> moves = allPseudoValidMoves();
+		float bestEval;
+		if(sideToMove == Colour.WHITE) {
+			bestEval = -1000000;
+		} else {
+			bestEval = 1000000;
+		}
+		int[] bestMove = null;
+		for(int[] testMove : moves) {
+			Position resultingPosition = new Position(this);
+			resultingPosition.move(testMove);
+			if(resultingPosition.inCheck(sideToMove)) {
+				continue;
+			}
+			float moveEval = resultingPosition.evaluate();
+			if(sideToMove == Colour.WHITE && moveEval > bestEval) {
+				bestEval = moveEval;
+				bestMove = testMove;
+			} else if(sideToMove == Colour.BLACK && moveEval < bestEval) {
+				bestEval = moveEval;
+				bestMove = testMove;
+			}
+		}
+		
+		return bestMove;
+	}
+
 	private static int[] positionsToMove(int[] from, int[] to) {
 		int[] result = Arrays.copyOf(from, 4);
 		result[2] = to[0];
@@ -698,6 +701,8 @@ public class Position implements Cloneable {
 	}
 	
 	public float evaluate() {
+		
+		// Test material
 		float blackMaterial = 0;
 		float whiteMaterial = 0;
 		
@@ -714,28 +719,35 @@ public class Position implements Cloneable {
 					whiteMaterial++;
 					break;
 				case 'r':
-					blackMaterial += 5;
+					blackMaterial += 500;
 					break;
 				case 'R':
-					whiteMaterial += 5;
+					whiteMaterial += 500;
 					break;
 				case 'n':
-					blackMaterial += 3;
+					blackMaterial += 300;
 					break;
 				case 'N':
-					whiteMaterial += 3;
+					whiteMaterial += 300;
 					break;
 				case 'b':
-					blackMaterial += 3.2;
+					blackMaterial += 320;
 					break;
 				case 'B': 
-					whiteMaterial += 3.2;
+					whiteMaterial += 320;
 					break;
 				case 'q':
-					blackMaterial += 9.4;
+					blackMaterial += 940;
 					break;
 				case 'Q':
-					whiteMaterial += 9.4;
+					whiteMaterial += 940;
+					break;
+				case 'k':
+					blackMaterial += 1000000;
+					break;
+				case 'K':
+					whiteMaterial += 1000000;
+					break;
 				default:
 					break;
 				}
