@@ -141,4 +141,15 @@ public class PositionTest {
 		initialPos.move(new int[] { 0, 6, 2, 5 });
 		assertEquals(Position.Colour.BLACK, initialPos.getSideToMove());
 	}
+	
+	@Test
+	public void testEp() {
+		initialPos.move(new int[] {1, 4, 3, 4});
+		assertEquals(2, initialPos.epSquare[0]);
+		assertEquals(4, initialPos.epSquare[1]);
+		assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", initialPos.toFEN());
+		initialPos.move(new int[] {6, 4, 4, 4});
+		assertEquals(5, initialPos.epSquare[0]);
+		assertEquals(4, initialPos.epSquare[1]);
+	}
 }

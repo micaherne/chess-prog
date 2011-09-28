@@ -10,7 +10,7 @@ public class Position implements Cloneable {
 	private char[][] pieces; // rank, file
 	private Colour sideToMove = Colour.WHITE;
 	private String castling = "KQkq";
-	private int[] epSquare = null;
+	int[] epSquare = new int[] { -1, -1 };
 	private int halfmove = 0;
 	private int fullmove = 1;
 	
@@ -142,11 +142,11 @@ public class Position implements Cloneable {
 			result.append("-");
 		}
 		result.append(' ');
-		if (epSquare == null) {
+		if (epSquare[0] == -1) {
 			result.append('-');
 		} else {
-			result.append('a' + epSquare[1]);
-			result.append(epSquare[0]);
+			result.append(Character.toChars('a' + epSquare[1]));
+			result.append(epSquare[0] + 1);
 		}
 		if (full) {
 			result.append(' ');
@@ -167,7 +167,11 @@ public class Position implements Cloneable {
 	}
 
 	public char getPiece(int[] pos) {
-		return this.pieces[pos[0]][pos[1]];
+		if(validSquare(pos)) {
+			return this.pieces[pos[0]][pos[1]];
+		} else {
+			return 'x';
+		}
 	}
 
 	@Override
@@ -272,6 +276,21 @@ public class Position implements Cloneable {
 			if(move[3] == 2) {
 				this.pieces[7][0] = ' ';
 				this.pieces[7][3] = 'r';
+			}
+		}
+		
+		// Do en passent
+		if(epSquare[0] != -1 && move[2] == epSquare[0] && move[3] == epSquare[1]) {
+			this.pieces[move[0]][epSquare[1]] = ' ';
+		}
+		
+		// Reset e.p. square
+		epSquare[0] = -1; 
+		epSquare[1] = -1;
+		
+		if(movedPiece == 'P' || movedPiece == 'p'){
+			if(Math.abs(move[2] - move[0]) == 2) {
+				epSquare = new int[] { move[0] + ((move[2] - move[0]) / 2), move[1] };
 			}
 		}
 	}
@@ -637,7 +656,7 @@ public class Position implements Cloneable {
 
 	public int[] bestMove() {
 		bestMove = null;
-		negaMax(4);
+		negaMax(2);
 		return bestMove;
 	}
 	
@@ -646,7 +665,7 @@ public class Position implements Cloneable {
 	    int max = Integer.MIN_VALUE;
 	    Set<int[]> moves = allPseudoValidMoves();
 	    for(int[] m : moves){
-	    	Position resultingPosition = new Position(this);
+			Position resultingPosition = new Position(this);
 			resultingPosition.move(m);
 	        int score = - resultingPosition.negaMax( depth - 1 );
 	        if( score > max ) {

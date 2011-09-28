@@ -139,6 +139,7 @@ public class IO {
 	
 	private void commandGo(String input) {
 		int[] bestMove = currentPosition.bestMove();
+		doOutput("info string e.p. " + currentPosition.epSquare[0] + ", " + currentPosition.epSquare[1]);
 		doOutput("bestmove " + currentPosition.moveNotation(bestMove, NotationType.LONG_ALGEBRAIC));
 		currentPosition.move(bestMove);
 	}
