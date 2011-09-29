@@ -2,7 +2,6 @@ package uk.co.micaherne;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class Position implements Cloneable {
@@ -13,8 +12,9 @@ public class Position implements Cloneable {
 	int[] epSquare = new int[] { -1, -1 };
 	private int halfmove = 0;
 	private int fullmove = 1;
-	
+
 	private int[] bestMove = null;
+	private static int nodesSearched;
 
 	// CONSTANTS
 	// piece names
@@ -22,7 +22,7 @@ public class Position implements Cloneable {
 			'Q', 'R' };
 	private static final char[] BLACK_PIECES = new char[] { 'b', 'k', 'n', 'p',
 			'q', 'r' };
-	
+
 	public static final String initialFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 	public static enum Colour {
@@ -36,11 +36,12 @@ public class Position implements Cloneable {
 	public Position() {
 		this.pieces = new char[8][8];
 	}
-	
+
 	public Position(Position other) {
 		this.pieces = new char[8][8];
-		for(int i = 0; i < other.pieces.length; i++) {
-			System.arraycopy(other.pieces[i], 0, this.pieces[i], 0, other.pieces[i].length);
+		for (int i = 0; i < other.pieces.length; i++) {
+			System.arraycopy(other.pieces[i], 0, this.pieces[i], 0,
+					other.pieces[i].length);
 		}
 		sideToMove = other.sideToMove;
 		castling = other.castling;
@@ -167,7 +168,7 @@ public class Position implements Cloneable {
 	}
 
 	public char getPiece(int[] pos) {
-		if(validSquare(pos)) {
+		if (validSquare(pos)) {
 			return this.pieces[pos[0]][pos[1]];
 		} else {
 			return 'x';
@@ -215,18 +216,19 @@ public class Position implements Cloneable {
 	}
 
 	public void move(int[] move) {
-		if (sideToMove == Colour.WHITE) {
-			sideToMove = Colour.BLACK;
-		} else if (sideToMove == Colour.BLACK) {
-			sideToMove = Colour.WHITE;
-		}
-
-		if (sideToMove == Colour.WHITE) {
-			fullmove++;
-		}
 
 		char movedPiece = this.pieces[move[0]][move[1]];
 		char takenPiece = this.pieces[move[2]][move[3]];
+
+		// Do pawn promotion
+		if (move.length > 4 && move[4] > -1) {
+			movedPiece = Character.toChars(move[4])[0];
+			if(sideToMove == Colour.WHITE) {
+				movedPiece = Character.toUpperCase(movedPiece);
+			} else {
+				movedPiece = Character.toLowerCase(movedPiece);
+			}
+		}
 
 		// Castling - rook moves
 		if (move[0] == 0 && move[1] == 0 && castling.contains("Q")) {
@@ -257,42 +259,56 @@ public class Position implements Cloneable {
 		}
 		this.pieces[move[0]][move[1]] = ' ';
 		this.pieces[move[2]][move[3]] = movedPiece;
-		
+
 		// Do castling
-		if(movedPiece == 'K' && Math.abs(move[3] - move[1]) == 2) {
-			if(move[3] == 6) {
+		if (movedPiece == 'K' && Math.abs(move[3] - move[1]) == 2) {
+			if (move[3] == 6) {
 				this.pieces[0][7] = ' ';
 				this.pieces[0][5] = 'R';
 			}
-			if(move[3] == 2) {
+			if (move[3] == 2) {
 				this.pieces[0][0] = ' ';
 				this.pieces[0][3] = 'R';
 			}
-		} else if(movedPiece == 'k' && Math.abs(move[3] - move[1]) == 2) {
-			if(move[3] == 6) {
+		} else if (movedPiece == 'k' && Math.abs(move[3] - move[1]) == 2) {
+			if (move[3] == 6) {
 				this.pieces[7][7] = ' ';
 				this.pieces[7][5] = 'r';
 			}
-			if(move[3] == 2) {
+			if (move[3] == 2) {
 				this.pieces[7][0] = ' ';
 				this.pieces[7][3] = 'r';
 			}
 		}
-		
+
 		// Do en passent
-		if(epSquare[0] != -1 && move[2] == epSquare[0] && move[3] == epSquare[1]) {
+		if (epSquare[0] != -1 && move[2] == epSquare[0]
+				&& move[3] == epSquare[1]) {
 			this.pieces[move[0]][epSquare[1]] = ' ';
 		}
-		
+
 		// Reset e.p. square
-		epSquare[0] = -1; 
+		epSquare[0] = -1;
 		epSquare[1] = -1;
-		
-		if(movedPiece == 'P' || movedPiece == 'p'){
-			if(Math.abs(move[2] - move[0]) == 2) {
-				epSquare = new int[] { move[0] + ((move[2] - move[0]) / 2), move[1] };
+
+		if (movedPiece == 'P' || movedPiece == 'p') {
+			if (Math.abs(move[2] - move[0]) == 2) {
+				epSquare = new int[] { move[0] + ((move[2] - move[0]) / 2),
+						move[1] };
 			}
 		}
+		
+		// Update side to move
+		if (sideToMove == Colour.WHITE) {
+			sideToMove = Colour.BLACK;
+		} else if (sideToMove == Colour.BLACK) {
+			sideToMove = Colour.WHITE;
+		}
+
+		if (sideToMove == Colour.WHITE) {
+			fullmove++;
+		}
+
 	}
 
 	public void move(String move) throws NotationException {
@@ -360,18 +376,18 @@ public class Position implements Cloneable {
 			}
 			this.pieces[to[0]][to[1]] = movedPiece;
 			this.pieces[from[0]][from[1]] = ' ';
-		} else if(NotationType.LONG_ALGEBRAIC.equals(notationType)) {
-				if (move.length() < 4 || move.length() > 5) {
-					throw new NotationException(
-							"Long algebraic notation must be in form XXXX");
-				}
-				if (!move.toLowerCase().equals(move)) {
-					throw new NotationException(
-							"Long algebraic notation must be in lower case");
-				}
-				
-				int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
-				move(m);
+		} else if (NotationType.LONG_ALGEBRAIC.equals(notationType)) {
+			if (move.length() < 4 || move.length() > 5) {
+				throw new NotationException(
+						"Long algebraic notation must be in form XXXX");
+			}
+			if (!move.toLowerCase().equals(move)) {
+				throw new NotationException(
+						"Long algebraic notation must be in lower case");
+			}
+
+			int[] m = stringToMove(move, NotationType.LONG_ALGEBRAIC);
+			move(m);
 		}
 	}
 
@@ -384,20 +400,23 @@ public class Position implements Cloneable {
 			result[1] = moveString.charAt(0) - 'a';
 			result[2] = moveString.charAt(3) - '1';
 			result[3] = moveString.charAt(2) - 'a';
-			if(moveString.length() == 5) {
+			if (moveString.length() == 5) {
 				result[4] = moveString.charAt(4);
+			} else {
+				result[4] = -1;
 			}
 			break;
 
 		default:
 			break;
 		}
-		
+
 		return result;
 	}
 
 	/**
 	 * Find all pseudo-valid moves in the current position
+	 * 
 	 * @return
 	 */
 	public Set<int[]> allPseudoValidMoves() {
@@ -420,19 +439,23 @@ public class Position implements Cloneable {
 
 		return result;
 	}
-	
+
 	public boolean inCheck(Colour colour) {
 		char ownKing;
-		if(colour == Colour.WHITE) {
+		Position temp = new Position(this);
+		if (colour == Colour.WHITE) {
 			ownKing = 'K';
+			temp.sideToMove = Colour.BLACK;
 		} else {
 			ownKing = 'k';
+			temp.sideToMove = Colour.WHITE;
 		}
-		Set<int[]> moves = allPseudoValidMoves();
-		for(int[] move : moves) {
-			char attackedPiece = getPiece(new int[] { move[2], move[3]} );
-			if(attackedPiece == ' ') continue;
-			if(attackedPiece == ownKing ) {
+		Set<int[]> moves = temp.allPseudoValidMoves();
+		for (int[] move : moves) {
+			char attackedPiece = getPiece(new int[] { move[2], move[3] });
+			if (attackedPiece == ' ')
+				continue;
+			if (attackedPiece == ownKing) {
 				return true;
 			}
 		}
@@ -470,7 +493,7 @@ public class Position implements Cloneable {
 		} else if (piece == 'k' || piece == 'K') {
 			validKingMoves(pos, result);
 		}
-		
+
 		return result;
 	}
 
@@ -521,8 +544,9 @@ public class Position implements Cloneable {
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] + 2, pos[1] };
-		int[] intermediateSquare = new int[] { pos[0] + 1, pos[1]};
-		if (pos[0] == 1 && getPiece(possible) == ' ' && getPiece(intermediateSquare) == ' ') { // forward two
+		int[] intermediateSquare = new int[] { pos[0] + 1, pos[1] };
+		if (pos[0] == 1 && getPiece(possible) == ' '
+				&& getPiece(intermediateSquare) == ' ') { // forward two
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] + 1, pos[1] - 1 };
@@ -547,8 +571,9 @@ public class Position implements Cloneable {
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] - 2, pos[1] };
-		int[] intermediateSquare = new int[] { pos[0] - 1, pos[1]};
-		if (pos[0] == 6 && getPiece(possible) == ' ' && getPiece(intermediateSquare) == ' ') { // forward two
+		int[] intermediateSquare = new int[] { pos[0] - 1, pos[1] };
+		if (pos[0] == 6 && getPiece(possible) == ' '
+				&& getPiece(intermediateSquare) == ' ') { // forward two
 			result.add(positionsToMove(pos, possible));
 		}
 		possible = new int[] { pos[0] - 1, pos[1] + 1 };
@@ -655,49 +680,59 @@ public class Position implements Cloneable {
 	}
 
 	public int[] bestMove() {
+		nodesSearched = 0;
 		bestMove = null;
-		//negaMax(2);
-		alphaBeta(4, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		// negaMax(4);
+		alphaBeta(4, -200000, 200000);
 		return bestMove;
 	}
-	
-	public int negaMax( int depth ) {
-		if ( depth == 0 ) return evaluate();
-	    int max = Integer.MIN_VALUE;
-	    Set<int[]> moves = allPseudoValidMoves();
-	    for(int[] m : moves){
+
+	public int negaMax(int depth) {
+		if (depth == 0)
+			return evaluate();
+		int max = Integer.MIN_VALUE;
+		Set<int[]> moves = allPseudoValidMoves();
+		for (int[] m : moves) {
 			Position resultingPosition = new Position(this);
 			resultingPosition.move(m);
-	        int score = - resultingPosition.negaMax( depth - 1 );
-	        if( score > max ) {
-	            max = score;
-	            bestMove = m;
-	        }
-	    }
-	    return max;
+			int score = -resultingPosition.negaMax(depth - 1);
+			if (score > max) {
+				max = score;
+				bestMove = m;
+			}
+		}
+		return max;
 	}
-	
+
 	public int alphaBeta(int depth, int alpha, int beta) {
-		if (depth == 0 ) return evaluate();
+		if (depth == 0) {
+			nodesSearched++;
+			return evaluate();
+		}
 		int localalpha = alpha;
 		int max = Integer.MIN_VALUE;
-	    Set<int[]> moves = allPseudoValidMoves();
-	    for(int[] m : moves){
+		Set<int[]> moves = allPseudoValidMoves();
+		for (int[] m : moves) {
 			Position resultingPosition = new Position(this);
 			resultingPosition.move(m);
-	        int score = - alphaBeta( depth - 1, -beta, -localalpha );
-	        if( score > max ) {
-	            max = score;
-	            bestMove = m;
-	        }
-	        if( max >= beta) {
-	        	break;
-	        }
-	        if( max > localalpha) {
-	        	localalpha = max;
-	        }
-	    }
-	    return max;
+			if (resultingPosition
+					.inCheck(oppositeColour(resultingPosition.sideToMove))) {
+				continue;
+			}
+			int score = -resultingPosition.alphaBeta(depth - 1, -beta,
+					-localalpha);
+			if (score > max) {
+				max = score;
+				bestMove = m;
+			}
+			if (max >= beta) {
+				break;
+			}
+			if (max > localalpha) {
+				localalpha = max;
+			}
+		}
+		return max;
 	}
 
 	private static int[] positionsToMove(int[] from, int[] to) {
@@ -758,17 +793,17 @@ public class Position implements Cloneable {
 		result[1] = coord.charAt(0) - 'A';
 		return result;
 	}
-	
+
 	public int evaluate() {
-		
+
 		// Test material
 		int blackMaterial = 0;
 		int whiteMaterial = 0;
-		
-		for(int i = 1; i <= 8; i++) {
-			
-			for(int j = 1; j <= 8; j++) {
-				
+
+		for (int i = 1; i <= 8; i++) {
+
+			for (int j = 1; j <= 8; j++) {
+
 				char piece = getPiece(i, j);
 				switch (piece) {
 				case 'p':
@@ -792,7 +827,7 @@ public class Position implements Cloneable {
 				case 'b':
 					blackMaterial += 320;
 					break;
-				case 'B': 
+				case 'B':
 					whiteMaterial += 320;
 					break;
 				case 'q':
@@ -811,16 +846,15 @@ public class Position implements Cloneable {
 					break;
 				}
 			}
-			
+
 		}
-		
-		if(sideToMove == Colour.WHITE) {
+
+		if (sideToMove == Colour.WHITE) {
 			return whiteMaterial - blackMaterial;
 		} else {
 			return blackMaterial - whiteMaterial;
 		}
 	}
-	
 
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -888,6 +922,10 @@ public class Position implements Cloneable {
 
 	public void setFullmove(int fullmove) {
 		this.fullmove = fullmove;
+	}
+
+	public int getNodesSearched() {
+		return nodesSearched;
 	}
 
 }

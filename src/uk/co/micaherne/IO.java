@@ -59,7 +59,7 @@ public class IO {
 		}
 	}
 	
-	private void doInput(String input) throws UCIException {
+	public void doInput(String input) throws UCIException {
 		String[] parts = input.split("\\s+", 2);
 		String keyword = parts[0];
 		
@@ -140,9 +140,15 @@ public class IO {
 	private void commandGo(String input) {
 		int[] bestMove = currentPosition.bestMove();
 		doOutput("info string e.p. " + currentPosition.epSquare[0] + ", " + currentPosition.epSquare[1]);
+		doOutput("info nodes " + currentPosition.getNodesSearched());
 		doOutput("bestmove " + currentPosition.moveNotation(bestMove, NotationType.LONG_ALGEBRAIC));
 		currentPosition.move(bestMove);
 	}
 
 
+	public Position getCurrentPosition() {
+		return currentPosition;
+	}
+
+	
 }
