@@ -656,7 +656,8 @@ public class Position implements Cloneable {
 
 	public int[] bestMove() {
 		bestMove = null;
-		negaMax(2);
+		//negaMax(2);
+		alphaBeta(4, Integer.MIN_VALUE, Integer.MAX_VALUE);
 		return bestMove;
 	}
 	
@@ -671,6 +672,29 @@ public class Position implements Cloneable {
 	        if( score > max ) {
 	            max = score;
 	            bestMove = m;
+	        }
+	    }
+	    return max;
+	}
+	
+	public int alphaBeta(int depth, int alpha, int beta) {
+		if (depth == 0 ) return evaluate();
+		int localalpha = alpha;
+		int max = Integer.MIN_VALUE;
+	    Set<int[]> moves = allPseudoValidMoves();
+	    for(int[] m : moves){
+			Position resultingPosition = new Position(this);
+			resultingPosition.move(m);
+	        int score = - alphaBeta( depth - 1, -beta, -localalpha );
+	        if( score > max ) {
+	            max = score;
+	            bestMove = m;
+	        }
+	        if( max >= beta) {
+	        	break;
+	        }
+	        if( max > localalpha) {
+	        	localalpha = max;
 	        }
 	    }
 	    return max;
