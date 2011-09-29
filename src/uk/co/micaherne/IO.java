@@ -121,7 +121,6 @@ public class IO {
 				currentPosition = Position.fromFEN(Position.initialFEN);
 				if(tokens.length > 3 && "moves".equals(tokens[2])){
 					for(int i = 3; i < tokens.length; i++) {
-						doOutput("info string moving " + tokens[i]);
 						currentPosition.move(tokens[i], NotationType.LONG_ALGEBRAIC);
 					}
 				}
@@ -140,6 +139,7 @@ public class IO {
 	
 	private void commandGo(String input) {
 		int[] bestMove = currentPosition.bestMove();
+		doOutput("info string e.p. " + currentPosition.epSquare[0] + ", " + currentPosition.epSquare[1]);
 		doOutput("bestmove " + currentPosition.moveNotation(bestMove, NotationType.LONG_ALGEBRAIC));
 		currentPosition.move(bestMove);
 	}
