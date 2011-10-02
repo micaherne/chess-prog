@@ -196,10 +196,10 @@ public class Position implements Cloneable {
 		if (pieceMoved == 'k' || pieceMoved == 'K') {
 			if (Arrays.equals(move, new int[] { 0, 4, 0, 2 })
 					|| Arrays.equals(move, new int[] { 7, 4, 7, 2 })) {
-				return "0-0-0";
+				return "O-O-O";
 			} else if (Arrays.equals(move, new int[] { 0, 4, 0, 6 })
 					|| Arrays.equals(move, new int[] { 7, 4, 7, 6 })) {
-				return "0-0";
+				return "O-O";
 			}
 		}
 		if (NotationType.LONG_ALGEBRAIC.equals(notationType)) {
