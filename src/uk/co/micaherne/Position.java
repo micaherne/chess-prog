@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import uk.co.micaherne.Position.Colour;
+
 public class Position implements Cloneable {
 
 	private char[][] pieces; // rank, file
@@ -433,11 +435,39 @@ public class Position implements Cloneable {
 		for (char pieceName : pieceNames) {
 			Set<int[]> positions = piecePositions(pieceName);
 			for (int[] pos : positions) {
-				result.addAll(validMoves(pos));
+				result.addAll(pseudoValidMoves(pos));
 			}
 		}
 
 		return result;
+	}
+
+	// Only checks whether a pseudo-valid move is valid
+	public boolean moveIsValid(int[] m) {
+		Position resultingPosition = new Position(this);
+		resultingPosition.move(m);
+		if(resultingPosition.inCheck(sideToMove)) {
+			return false;
+		}
+		// Check castling
+		char pieceMoved = getPiece(new int[] { m[0], m[1] });
+		if((pieceMoved == 'k' || pieceMoved == 'K') && Math.abs(m[1] - m[3]) == 2 ) {
+			// Don't permit castling out of check
+			if(this.inCheck(sideToMove)) {
+				return false;
+			}
+			
+			// ...or through check
+			int[] intermediateMove = new int[] { m[0], m[1], m[2],
+				m[3] - ((m[1] - m[3])/2)
+			};
+			if(!moveIsValid(intermediateMove)){
+				return false;
+			}
+		}
+		
+		
+		return true;
 	}
 
 	public boolean inCheck(Colour colour) {
@@ -461,7 +491,20 @@ public class Position implements Cloneable {
 		}
 		return false;
 	}
+	
+	public boolean isAttacked(int[] square, Colour attackingColour) {
+		Position pos = new Position(this);
+		pos.sideToMove = attackingColour;
+		Set<int[]> moves = pos.allPseudoValidMoves();
+		for(int[] move : moves) {
+			if(move[2] == square[0] && move[3] == square[1]) {
+				return true;
+			}
+		}
+		return false;
+	}
 
+	
 	/**
 	 * Find all valid moves for the piece at the given position
 	 * 
@@ -469,7 +512,7 @@ public class Position implements Cloneable {
 	 *            array of rank, file
 	 * @return Set of all valid moves as 4-long arrays
 	 */
-	public Set<int[]> validMoves(int[] pos) {
+	public Set<int[]> pseudoValidMoves(int[] pos) {
 		HashSet<int[]> result = new HashSet<int[]>();
 
 		char piece = pieces[pos[0]][pos[1]];
@@ -517,20 +560,25 @@ public class Position implements Cloneable {
 		// Castling
 		if (getPiece(pos) == 'K' && Arrays.equals(pos, new int[] { 0, 4 })) {
 			if (getPiece(1, 6) == ' ' && getPiece(1, 7) == ' '
+					&& getPiece(1, 8) == 'R'
 					&& castling.contains("K")) {
 				result.add(new int[] { 0, 4, 0, 6 });
 			}
 			if (getPiece(1, 4) == ' ' && getPiece(1, 3) == ' '
-					&& getPiece(1, 2) == ' ' && castling.contains("Q")) {
+					&& getPiece(1, 2) == ' ' 
+					&& getPiece(1, 1) == 'R'
+					&& castling.contains("Q")) {
 				result.add(new int[] { 0, 4, 0, 2 });
 			}
 		}
 		if (getPiece(pos) == 'k' && Arrays.equals(pos, new int[] { 7, 4 })) {
 			if (getPiece(8, 6) == ' ' && getPiece(8, 7) == ' '
+					&& getPiece(8, 8) == 'r'
 					&& castling.contains("k")) {
 				result.add(new int[] { 7, 4, 7, 6 });
 			}
 			if (getPiece(8, 4) == ' ' && getPiece(8, 3) == ' '
+					&& getPiece(8, 1) == 'r'
 					&& getPiece(8, 2) == ' ' && castling.contains("q")) {
 				result.add(new int[] { 7, 4, 7, 2 });
 			}
@@ -714,11 +762,8 @@ public class Position implements Cloneable {
 		Set<int[]> moves = allPseudoValidMoves();
 		for (int[] m : moves) {
 			Position resultingPosition = new Position(this);
+			if(!resultingPosition.moveIsValid(m)) continue;
 			resultingPosition.move(m);
-			if (resultingPosition
-					.inCheck(oppositeColour(resultingPosition.sideToMove))) {
-				continue;
-			}
 			int score = -resultingPosition.alphaBeta(depth - 1, -beta,
 					-localalpha);
 			if (score > max) {
@@ -736,9 +781,16 @@ public class Position implements Cloneable {
 	}
 
 	private static int[] positionsToMove(int[] from, int[] to) {
-		int[] result = Arrays.copyOf(from, 4);
+		int[] result = Arrays.copyOf(from, 5);
 		result[2] = to[0];
 		result[3] = to[1];
+		result[4] = -1;
+		return result;
+	}
+	
+	private static int[] positionsToMove(int[] from, int[] to, char promotionPiece) {
+		int[] result = positionsToMove(from, to);
+		result[4] = (int) promotionPiece;
 		return result;
 	}
 

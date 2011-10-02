@@ -29,6 +29,12 @@ public class PositionTest {
 		assertEquals(' ', initialPos.getPiece(4, 5));
 		assertEquals('P', initialPos.getPiece(2, 4));
 		assertEquals('Q', initialPos.getPiece(1, 4));
+		
+		// Check castling is correct
+		Position pos2 = Position.fromFEN("3k4/8/8/8/8/5b2/8/R2K4 w KQkq - 0 1");
+		assertEquals("KQkq", pos2.getCastling());
+		Position pos3 = Position.fromFEN("3k4/8/8/8/8/5b2/8/R2K4 w - - 0 1");
+		assertEquals("-", pos3.getCastling());
 	}
 	
 	@Test
@@ -134,7 +140,7 @@ public class PositionTest {
 	@Test
 	public void testAllMoves() throws FENException {
 		Position pos = Position.fromFEN("rnb1kbnr/ppp2Ppp/5q2/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 4");
-		for(int[] move : pos.validMoves(new int[] { 6, 5 })) {
+		for(int[] move : pos.pseudoValidMoves(new int[] { 6, 5 })) {
 			//System.out.println(move[0] + ", " + move[1] + ", " + move[2] + ", " + move[3]);
 		}
 	}
@@ -188,9 +194,32 @@ public class PositionTest {
 		IO io = new IO();
 		io.doInput("position startpos moves e2e4 d7d5 e4d5 e7e6 d5e6 d8f6 e6f7");
 		Position pos = io.getCurrentPosition();
-		System.out.println(pos);
 		assertTrue(pos.inCheck(Colour.BLACK));
 		io.doInput("position startpos moves e2e4 b8a6 g1f3 b7b6 d2d4 h7h6 f1b5 c7c6 b5d3 e7e6 e4e5 c8b7 b1c3 c6c5 c1e3 a6b4 d3b5 a7a6 b5e2 d8e7 e1g1 a8c8 a2a3 b4c6 d4d5 c6a7 d5d6 e7d8 e2d3 b6b5 d3e4 b7e4 c3e4 c8a8 e3c5 f7f5 e5f6 a7c8 f6f7 e8f7 f3e5 f7e8 d1h5");
 		//assertTrue(pos.inCheck(Colour.BLACK));
+	}
+	
+	@Test
+	public void badMoveGen() throws UCIException {
+		IO io = new IO();
+		io.doInput("position startpos moves e2e4 b8a6 g1f3 e7e6 b2b3 h7h5 c1b2 g8h6 f1a6 b7a6 e1g1 a6a5 c2c4 a8b8 d2d4 d7d5 c4d5 h6g8 d5e6 c8e6 b1c3 e6g4 d1d3 b8b7 f3e5 d8d6 h2h3 g4c8 d3f3 d6f6 c3d5 f6f3 e5f3 a5a4 b3a4 b7b2 f3e5 b2c2 f1b1 g8f6 b1b8 f6d5 b8c8 e8e7 e4d5 h8h6 e5c6 e7f6 c8f8 c2c4 a4a5 c4a4 f8c8 a4c4 c8c7 a7a6 c7a7 g7g6 a7a6 f6g5 a1e1 g5f4 c6e5 c4d4 a6f6 f4g5 f6f7 d4f4 f7f4 g5f4 g2g3 f4f5 a5a6 g6g5 a6a7 h6a6 e5c6 f5g6 e1e8 g6h7 a7a8q a6a8 e8a8 h7g7 d5d6 h5h4 d6d7 g7h7 d7d8q h7g6 d8g8 g6f5 a8f8");
+		Position pos = io.getCurrentPosition();
+		assertTrue(pos.inCheck(Colour.BLACK));
+	}
+	
+	@Test
+	public void testCastleOutOfCheck() throws FENException {
+		Position pos = Position.fromFEN("3k4/8/8/8/8/5b2/8/R3K2R w KQkq - 0 1 ");
+		assertTrue(pos.getCastling().contains("K"));
+		Set<int[]> moves = pos.pseudoValidMoves(new int[] { 0, 3 });
+		for(int[] move : moves) {
+			System.out.println("To: " + move[2] + ", " + move[3]);
+			if(move[2] == 0 && move[3] == 2) {
+				fail("Can't castle out of check (queenside)!");
+			}
+			if(move[2] == 0 && move[3] == 6) {
+				fail("Can't castle out of check (kingside)!");
+			}
+		}
 	}
 }
