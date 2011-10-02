@@ -859,10 +859,10 @@ public class Position implements Cloneable {
 				char piece = getPiece(i, j);
 				switch (piece) {
 				case 'p':
-					blackMaterial++;
+					blackMaterial += 100;
 					break;
 				case 'P':
-					whiteMaterial++;
+					whiteMaterial += 100;
 					break;
 				case 'r':
 					blackMaterial += 500;
