@@ -66,13 +66,13 @@ public class BitboardPositionTest {
 	@Test
 	public void testBitboardToString() throws FENException {
 		BitboardPosition initPos = BitboardPosition.fromFEN(initialFEN);
-		System.out.println(BitboardPosition.bitboardToString(initPos.pieceBitboards[6]));
+		System.out.println(BitboardUtils.bitboardToString(initPos.pieceBitboards[6]));
 	}
 	
 	@Test
 	public void testWhitePieces() throws FENException {
 		BitboardPosition initPos = BitboardPosition.fromFEN(initialFEN);
-		System.out.println(BitboardPosition.bitboardToString(initPos.blackPieces()));
+		System.out.println(BitboardUtils.bitboardToString(initPos.blackPieces()));
 	}
 
 }

@@ -245,19 +245,5 @@ public class BitboardPosition {
 		}
 		return result;
 	}
-	
-	public static String bitboardToString(long bitboard) {
-		StringBuilder s = new StringBuilder();
-		for(int i = 63; i >= 0; i--) {
-			long b = bitboard;
-			b = b >> i;
-			b &= 1;
-			s.append(b);
-			if(i % 8 == 0) {
-				s.append('\n');
-			}
-		}
-		return s.toString();
-	}
 
 }
