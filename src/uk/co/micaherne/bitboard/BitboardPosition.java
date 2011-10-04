@@ -5,7 +5,6 @@ import java.util.List;
 
 import uk.co.micaherne.FENException;
 import uk.co.micaherne.NotationException;
-import uk.co.micaherne.Position.Colour;
 
 public class BitboardPosition {
 	
