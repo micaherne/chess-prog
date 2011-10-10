@@ -53,9 +53,15 @@ public class PositionTest{
 	public void move() {
 		Position pos = new Position();
 		pos.initialPosition();
-		pos.move(0x14, 0x34);
+/*		pos.move(0x14, 0x34);
 		assertFalse(pos.whiteToMove);
 		assertEquals(Position.EP_SQUARE, pos.board[0x24] & Position.EP_SQUARE );
+		assertEquals(Position.WHITE | Position.PAWN, pos.board[0x34]);
+		pos.initialPosition();*/
+		pos.move("e2e4");
+		assertFalse(pos.whiteToMove);
+		assertEquals(Position.EP_SQUARE, pos.board[0x24] & Position.EP_SQUARE );
+		assertEquals(Position.WHITE | Position.PAWN, pos.board[0x34]);
 		pos.move(0x64, 0x44);
 		assertEquals(Position.EP_SQUARE, pos.board[0x54] & Position.EP_SQUARE );
 
@@ -139,14 +145,17 @@ public class PositionTest{
 	@Test
 	public void testMisc() {
 		assertTrue(Arrays.binarySearch(Position.DIRECTIONS_KNIGHT, Position.DIRECTION_EASTNORTHEAST) > 0);
-		
+		int pieceMoved = Position.KING | Position.BLACK | Position.CAN_CASTLE;
+		pieceMoved &= ~Position.CAN_CASTLE;
+		assertEquals(Position.KING | Position.BLACK, pieceMoved);
 	}
 	
-	@Test
+	//@Test
 	public void testMoveGen() throws FENException {
 		Position pos = new Position();
 		pos.initialPosition();
 		assertTrue(pos.whiteToMove);
+		System.out.println(pos);
 		Set<int[]> moves = pos.validMoves();
 		assertEquals(20, moves.size());
 		pos = Position.fromFEN(perftPos2);
@@ -160,7 +169,7 @@ public class PositionTest{
 			if(!pos.isCheck(Position.WHITE)) {
 				count++;
 			} else {
-				System.out.println("Rejecting: " + Position.moveToNotation(move));
+				//System.out.println("Rejecting: " + Position.moveToNotation(move));
 			}
 			pos.undoMove();
 		}
@@ -173,7 +182,7 @@ public class PositionTest{
 			if(!pos.isCheck(Position.WHITE)) {
 				count++;
 			} else {
-				System.out.println("Rejecting: " + Position.moveToNotation(move));
+				//System.out.println("Rejecting: " + Position.moveToNotation(move));
 			}
 			pos.undoMove();
 		}
@@ -193,9 +202,17 @@ public class PositionTest{
 	}
 	
 	@Test
+	public void testMoveFromNotation() {
+		Position pos = new Position();
+		pos.initialPosition();
+		int[] move1 = pos.moveFromNotation("e2e4");
+		assertEquals(0x14, move1[0]);
+		assertEquals(0x34, move1[1]);
+	}
+	
+	@Test
 	public void testIsCheck() throws FENException {
 		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
-		System.out.println(pos);
 		assertTrue(pos.attacks(0x62, 0x51));
 		assertTrue(pos.isCheck(Position.WHITE));
 	}
@@ -205,6 +222,13 @@ public class PositionTest{
 		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
 		Position pos2 = pos.clone();
 		pos2.move(new int[] { 0x14, 0x34 });
+	}
+	
+	@Test
+	public void testBestMove() throws FENException, CloneNotSupportedException {
+		Position pos = Position.fromFEN(perftPos2);
+		assertEquals(perftPos2, pos.toFEN(false));
+		System.out.println(Position.moveToNotation(pos.bestMove(3)));
 	}
 
 }

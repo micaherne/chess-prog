@@ -1,1 +1,1 @@
-java -Xmx512M -jar lib/chess-prog.jar uk.co.micaherne.Engine
+java -Xmx512M -jar lib/chess-prog.jar uk.co.micaherne.eighteight.Engine
