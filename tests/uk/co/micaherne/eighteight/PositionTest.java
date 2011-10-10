@@ -70,6 +70,14 @@ public class PositionTest{
 	}
 	
 	@Test
+	public void testToFEN() throws FENException {
+		Position pos = Position.fromFEN(perftPos2);
+		assertEquals(perftPos2, pos.toFEN(false));
+		pos = Position.fromFEN(perftPos4);
+		assertEquals(perftPos4, pos.toFEN(true));
+	}
+	
+	@Test
 	public void testAttacks() throws FENException {
 		Position pos = Position.fromFEN(perftPos2);
 		assertTrue(pos.attacks(0x43, 0x54)); // white pawn attacks black pawn
@@ -190,6 +198,13 @@ public class PositionTest{
 		System.out.println(pos);
 		assertTrue(pos.attacks(0x62, 0x51));
 		assertTrue(pos.isCheck(Position.WHITE));
+	}
+	
+	@Test
+	public void testClone() throws FENException, CloneNotSupportedException {
+		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
+		Position pos2 = pos.clone();
+		pos2.move(new int[] { 0x14, 0x34 });
 	}
 
 }

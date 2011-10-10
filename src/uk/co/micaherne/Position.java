@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import uk.co.micaherne.Position.Colour;
-
 public class Position implements Cloneable {
 
 	private char[][] pieces; // rank, file

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import uk.co.micaherne.FENException;
+import uk.co.micaherne.Position.Colour;
 
 public class Position implements Cloneable {
 	
@@ -334,6 +335,77 @@ public class Position implements Cloneable {
 		return result;
 	}
 	
+	public String toFEN(boolean full) {
+		StringBuilder result = new StringBuilder();
+		for (int i = 7; i >= 0; i--) {
+			int spaceCount = 0;
+			for (int j = 0; j < 8; j++) {
+				if (empty(16 * i + j)) {
+					spaceCount++;
+					continue;
+				} else {
+					if (spaceCount > 0) {
+						result.append(spaceCount);
+						spaceCount = 0;
+					}
+					char p = pieceToChar(board[16 * i + j]);
+					result.append(p);
+				}
+			}
+			if (spaceCount > 0) {
+				result.append(spaceCount);
+				spaceCount = 0;
+			}
+			if (i > 0) {
+				result.append('/');
+			}
+		}
+
+		result.append(' ');
+		result.append(whiteToMove ? 'w' : 'b');
+		result.append(' ');
+		boolean castling = false;
+		if ((board[0x04] & board[0x07] & CAN_CASTLE) == CAN_CASTLE) {
+			result.append("K");
+			castling = true;
+		}
+		if ((board[0x04] & board[0x00] & CAN_CASTLE) == CAN_CASTLE) {
+			result.append("Q");
+			castling = true;
+		}
+		if ((board[0x74] & board[0x77] & CAN_CASTLE) == CAN_CASTLE) {
+			result.append("k");
+			castling = true;
+		}
+		if ((board[0x74] & board[0x70] & CAN_CASTLE) == CAN_CASTLE) {
+			result.append("q");
+			castling = true;
+		}
+
+		if(!castling) {
+			result.append("-");
+		}
+		result.append(' ');
+		String epSquare = "-";
+		for(int i = 0; i < 128; i++) {
+			if((i & 0x88) != 0) continue;
+			if((board[i] & EP_SQUARE) == EP_SQUARE) {
+				epSquare = squareToNotation(i);
+				break;
+			}
+		}
+		result.append(epSquare);
+		
+		if (full) {
+			result.append(' ');
+			result.append(halfmove);
+			result.append(' ');
+			result.append(fullmove);
+		}
+
+		return result.toString();
+	}
+	
 	public boolean empty(int square) {
 		return (board[square] & 31) == 0;
 	}
@@ -583,19 +655,24 @@ public class Position implements Cloneable {
 		StringBuilder result = new StringBuilder();
 		for(int i = 0; i < 2; i++) {
 			int square = move[i];
-			int rank = square >>> 4;
-			int file = square & 7;
-			result.append(Character.toChars('a' + file));
-			result.append(rank + 1);
-			
+			result.append(squareToNotation(square));
 		}
+		return result.toString();
+	}
+	
+	public static String squareToNotation(int square) {
+		StringBuilder result = new StringBuilder();
+		int rank = square >>> 4;
+		int file = square & 7;
+		result.append(Character.toChars('a' + file));
+		result.append(rank + 1);
 		return result.toString();
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	protected Position clone() throws CloneNotSupportedException {
 		// TODO Auto-generated method stub
-		return super.clone();
+		return (Position) super.clone();
 	}
 	
 	
