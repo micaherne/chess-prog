@@ -51,7 +51,7 @@ public class PositionTest{
 	}
 	
 	@Test
-	public void move() {
+	public void move() throws FENException {
 		Position pos = new Position();
 		pos.initialPosition();
 /*		pos.move(0x14, 0x34);
@@ -66,6 +66,11 @@ public class PositionTest{
 		pos.move(0x64, 0x44);
 		assertEquals(Position.EP_SQUARE, pos.board[0x54] & Position.EP_SQUARE );
 
+		// test weird situation where a1-c1 created a phantom rook at d1
+		Position pos2 = Position.fromFEN("4k3/8/8/8/8/8/8/R3K3 w Q - 0 1");
+		//pos2.move("a1c1");
+		pos2.move(new int[] { 0x00, 0x02 });
+		assertEquals(0, pos2.board[0x03]);
 	}
 	
 	@Test
@@ -151,43 +156,47 @@ public class PositionTest{
 		assertEquals(Position.KING | Position.BLACK, pieceMoved);
 	}
 	
-	//@Test
+	@Test
 	public void testMoveGen() throws FENException {
-		Position pos = new Position();
-		pos.initialPosition();
-		assertTrue(pos.whiteToMove);
-		System.out.println(pos);
-		Set<int[]> moves = pos.validMoves();
-		assertEquals(20, moves.size());
-		pos = Position.fromFEN(perftPos2);
-		moves = pos.validMoves();
-		assertEquals(48, moves.size());
-		pos = Position.fromFEN(perftPos3);
-		moves = pos.validMoves();
+		// position 22 from perft file comes up with 0-0-0!
+		Position pos = Position.fromFEN("4k2r/8/8/8/8/8/8/4K3 b k - 0 1");
+		assertEquals(0, pos.board[0x70]);
+		Set<int[]> moves = pos.pseudoValidMoves(0x74);
+		assertEquals(6, moves.size());
+		
+		Position pos2 = Position.fromFEN("r3k3/8/8/8/8/8/8/4K3 b q - 0 1"); // position 23
+		moves = pos2.pseudoValidMoves();
+		assertEquals(16, moves.size());
+
+		Position pos3 = Position.fromFEN("8/Pk6/8/8/8/8/6Kp/8 b - - 0 1"); // position 123
+		moves = pos3.pseudoValidMoves(0x17);
+		assertEquals(4, moves.size());
+		
+		Position pos4 = Position.fromFEN("n1n5/1Pk5/8/8/8/8/5Kp1/5N1N b - - 0 1"); // position 124
+		moves = pos4.pseudoValidMoves(0x16);
+		assertEquals(12, moves.size());
+		
+		// level 2 issues
+		Position pos5 = Position.fromFEN("4k3/8/8/8/8/8/8/R3K3 w Q - 0 1");
+		moves = pos5.validMoves();
+		assertEquals(16, moves.size());
 		int count = 0;
-		for(int[] move : moves) {
-			pos.move(move);
-			if(!pos.isCheck(Position.WHITE)) {
+		for (int[] move : moves) {
+			String move1 = Position.moveToNotation(move);
+			Position pos5temp = new Position(pos5);
+			pos5temp.move(move1);
+			Set<int[]> moves2 = pos5temp.validMoves();
+			if(moves2.size() == 5) continue;
+			System.out.println(pos5temp);
+			for(int[] move2 : moves2) {
 				count++;
-			} else {
-				//System.out.println("Rejecting: " + Position.moveToNotation(move));
+				System.out.println(count + ". " + move1 + ", " + Position.moveToNotation(move2));
 			}
-			pos.undoMove();
 		}
-		assertEquals(14, count);
-		pos = Position.fromFEN(perftPos4);
-		moves = pos.validMoves();
-		count = 0;
-		for(int[] move : moves) {
-			pos.move(move);
-			if(!pos.isCheck(Position.WHITE)) {
-				count++;
-			} else {
-				//System.out.println("Rejecting: " + Position.moveToNotation(move));
-			}
-			pos.undoMove();
-		}
-		assertEquals(6, count);
+		
+		Position pos6 = Position.fromFEN("4k3/8/8/8/8/8/8/2R1K3 b - - 1 1");
+		moves = pos6.validMoves();
+		assertEquals(5, moves.size());
 		
 	}
 	
@@ -229,7 +238,6 @@ public class PositionTest{
 	public void testBestMove() throws FENException, CloneNotSupportedException {
 		Position pos = Position.fromFEN(perftPos2);
 		assertEquals(perftPos2, pos.toFEN(false));
-		System.out.println(Position.moveToNotation(pos.bestMove(3)));
 	}
 	
 	@Test
@@ -240,8 +248,8 @@ public class PositionTest{
 		assertEquals(400, perft(pos, 2));
 		assertEquals(8902, perft(pos, 3));
 		assertEquals(197281, perft(pos, 4));
-		assertEquals(4865609, perft(pos, 5));
-		assertEquals(119060324, perft(pos, 6));
+		//assertEquals(4865609, perft(pos, 5));
+		//assertEquals(119060324, perft(pos, 6));
 	}
 	
 	public int perft(Position pos, int depth) {
@@ -249,7 +257,7 @@ public class PositionTest{
 		int nodes = 0;
 		int millionNodes = 0;
 		Set<int[]> moves = new HashSet<int[]>();
-		for(int[] move : pos.validMoves()) {
+		for(int[] move : pos.pseudoValidMoves()) {
 			Position pos2 = new Position(pos);
 			pos2.move(move);
 			// trim out checks

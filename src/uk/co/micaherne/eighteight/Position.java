@@ -245,7 +245,7 @@ public class Position implements Cloneable {
 		}
 
 		// castling
-		if ((pieceMoved & KING) != 0 && (Math.abs(j - i) == 2)) {
+		if ((pieceMoved & KING) == KING && (Math.abs(j - i) == 2)) {
 			pieceMoved &= ~CAN_CASTLE;
 			if (j == 0x02) {
 				board[0x00] = EMPTY;
@@ -596,7 +596,7 @@ public class Position implements Cloneable {
 		}
 		int localalpha = alpha;
 		int max = Integer.MIN_VALUE;
-		Set<int[]> moves = validMoves();
+		Set<int[]> moves = pseudoValidMoves();
 		for (int[] m : moves) {
 			Position resultingPosition = this.clone();
 			resultingPosition.move(m);
@@ -668,8 +668,26 @@ public class Position implements Cloneable {
 
 		return centipawns;
 	}
-
+	
+	/** Filters pseudo-valid moves to remove those which result in the
+	 * moving side remaining (or becoming) in check. Much, much slower than
+	 * pseudoValidMoves method
+	 * @return all actually valid moves
+	 */
 	public Set<int[]> validMoves() {
+		Set<int[]> pseudoValidMoves = pseudoValidMoves();
+		Set<int[]> result = new HashSet<int[]>();
+		for(int[] move : pseudoValidMoves) {
+			Position pos = new Position(this);
+			pos.move(move);
+			if(this.whiteToMove && pos.isCheck(WHITE)) continue;
+			if(!this.whiteToMove && pos.isCheck(BLACK)) continue;
+			result.add(move);
+		}
+		return result;
+	}
+
+	public Set<int[]> pseudoValidMoves() {
 		HashSet<int[]> result = new HashSet<int[]>();
 		for (int square = 0; square < 128; square++) {
 			if ((square & 0x88) != 0)
@@ -678,13 +696,13 @@ public class Position implements Cloneable {
 				continue;
 			if (whiteToMove != ((board[square] & COLOUR) == WHITE))
 				continue;
-			Set<int[]> moves = validMoves(square);
+			Set<int[]> moves = pseudoValidMoves(square);
 			result.addAll(moves);
 		}
 		return result;
 	}
 
-	public Set<int[]> validMoves(int square) {
+	public Set<int[]> pseudoValidMoves(int square) {
 		HashSet<int[]> result = new HashSet<int[]>();
 		if ((square & 0x88) != 0)
 			return result;
@@ -716,7 +734,8 @@ public class Position implements Cloneable {
 				int testSquare = square + (forward * jump);
 				if(testSquare < 0 || testSquare >= 128 || (square & 0x88) != 0) break;
 				if (empty(testSquare)) {
-					if (testSquare >>> 4 == 7) { // queened
+					if ((whiteToMove && (testSquare >>> 4 == 7)
+							|| (!whiteToMove && (testSquare >>> 4 == 0)))) { // queened
 						for(byte queeningPiece : queeningPieces) {
 							result.add(new int[] { square, testSquare, queeningPiece | pieceColour });
 						}
@@ -734,7 +753,8 @@ public class Position implements Cloneable {
 					continue;
 				if (((board[testSquare] & EP_SQUARE) != 0)
 						|| (board[testSquare] & COLOUR) != (piece & COLOUR)) {
-					if (testSquare >>> 4 == 7) { // queened
+					if ((whiteToMove && (testSquare >>> 4 == 7)
+							|| (!whiteToMove && (testSquare >>> 4 == 0)))) { // queened
 						for(byte queeningPiece : queeningPieces) {
 							result.add(new int[] { square, testSquare, queeningPiece | pieceColour });
 						}
@@ -748,13 +768,13 @@ public class Position implements Cloneable {
 		}
 
 		if ((piece & MOVES_DIAGONAL) == MOVES_DIAGONAL) {
-			result.addAll(validMoves(square, DIRECTIONS_DIAGONAL));
+			result.addAll(pseudoValidMoves(square, DIRECTIONS_DIAGONAL));
 		}
 		if ((piece & MOVES_LINEAR) == MOVES_LINEAR) {
-			result.addAll(validMoves(square, DIRECTIONS_LINEAR));
+			result.addAll(pseudoValidMoves(square, DIRECTIONS_LINEAR));
 		}
 		if ((piece & MOVES_KNIGHT_WISE) == MOVES_KNIGHT_WISE) {
-			result.addAll(validMoves(square, DIRECTIONS_KNIGHT));
+			result.addAll(pseudoValidMoves(square, DIRECTIONS_KNIGHT));
 		}
 
 		// Castling
@@ -768,7 +788,7 @@ public class Position implements Cloneable {
 			// Kingside
 			if (empty(square + 1)
 					&& empty(square + 2)
-					&& (board[square + 3] & kingColour | ROOK | CAN_CASTLE) == (kingColour
+					&& (board[square + 3] & (kingColour | ROOK | CAN_CASTLE)) == (kingColour
 							| ROOK | CAN_CASTLE)
 					&& !attacked(square, oppositeColour)
 					&& !attacked(square + 1, oppositeColour) // &&
@@ -781,7 +801,7 @@ public class Position implements Cloneable {
 			if (empty(square - 1)
 					&& empty(square - 2)
 					&& empty(square - 3)
-					&& ((board[square - 4] & kingColour | ROOK | CAN_CASTLE) == (kingColour
+					&& ((board[square - 4] & (kingColour | ROOK | CAN_CASTLE)) == (kingColour
 							| ROOK | CAN_CASTLE))
 					&& !attacked(square, oppositeColour)
 					&& !attacked(square - 1, oppositeColour)
@@ -792,7 +812,7 @@ public class Position implements Cloneable {
 		return result;
 	}
 
-	public Set<int[]> validMoves(int square, int[] directions) {
+	public Set<int[]> pseudoValidMoves(int square, int[] directions) {
 		HashSet<int[]> result = new HashSet<int[]>();
 		int jumps = 8; // TODO: we can calculate this more accurately
 		byte piece = board[square];

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -51,5 +52,21 @@ public class PerftRunner {
 			assertEquals("Testing line " + count, bits[1].trim(), "D1 " + perft);
 		}
 	}
+	
+	@Test
+	public void testLevel3() throws FENException, IOException {
+		testLoadEpd();
+		String line;
+		int count = 0;
+		while((line = reader.readLine()) != null) {
+			count++;
+			String[] bits = line.split(";");
+			Position pos = Position.fromFEN(bits[0]);
+			int perft = Perft.perft(pos, 2);
+			assertEquals("Testing line " + count, bits[2].trim(), "D2 " + perft);
+		}
+	}
+	
+	
 
 }
