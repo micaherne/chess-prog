@@ -9,7 +9,7 @@ import uk.co.micaherne.FENException;
 public class Position implements Cloneable {
 
 	byte[] board = new byte[128];
-	boolean whiteToMove = true;
+	public boolean whiteToMove = true;
 
 	// for undo
 	byte[] previousPosition = new byte[128];
@@ -119,6 +119,17 @@ public class Position implements Cloneable {
 		ROOK, KNIGHT, BISHOP, QUEEN
 	};
 	
+	public Position(Position pos) {
+		this.board = Arrays.copyOf(pos.board, 128);
+		this.whiteToMove = pos.whiteToMove;
+		this.fullmove = pos.fullmove;
+		this.halfmove = pos.halfmove;
+	}
+
+	public Position() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public void initialPosition() {
 		board = initPositionBoard;
 		whiteToMove = true;

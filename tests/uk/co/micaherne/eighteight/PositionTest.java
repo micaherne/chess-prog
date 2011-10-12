@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
@@ -229,6 +230,41 @@ public class PositionTest{
 		Position pos = Position.fromFEN(perftPos2);
 		assertEquals(perftPos2, pos.toFEN(false));
 		System.out.println(Position.moveToNotation(pos.bestMove(3)));
+	}
+	
+	@Test
+	public void testPerft() {
+		Position pos = new Position();
+		pos.initialPosition();
+		assertEquals(20, perft(pos, 1));
+		assertEquals(400, perft(pos, 2));
+		assertEquals(8902, perft(pos, 3));
+		assertEquals(197281, perft(pos, 4));
+		assertEquals(4865609, perft(pos, 5));
+		assertEquals(119060324, perft(pos, 6));
+	}
+	
+	public int perft(Position pos, int depth) {
+		if(depth == 0)  return 1;
+		int nodes = 0;
+		int millionNodes = 0;
+		Set<int[]> moves = new HashSet<int[]>();
+		for(int[] move : pos.validMoves()) {
+			Position pos2 = new Position(pos);
+			pos2.move(move);
+			// trim out checks
+			if(pos2.whiteToMove) {
+				if(pos2.isCheck(Position.BLACK)) continue;
+			} else {
+				if(pos2.isCheck(Position.WHITE)) continue;
+			}
+			nodes += perft(pos2, depth - 1);
+			if(nodes - (millionNodes * 1000000) > 1000000) {
+				System.out.println(millionNodes * 1000000 + " nodes evaluated");
+				millionNodes = nodes / 1000000;
+			}
+		}
+		return nodes;
 	}
 
 }
