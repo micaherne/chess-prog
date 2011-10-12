@@ -1,5 +1,6 @@
 package uk.co.micaherne.eighteight;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -177,22 +178,22 @@ public class PositionTest{
 		assertEquals(12, moves.size());
 		
 		// level 2 issues
-		Position pos5 = Position.fromFEN("4k3/8/8/8/8/8/8/R3K3 w Q - 0 1");
+		Position pos5 = Position.fromFEN("r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1");
 		moves = pos5.validMoves();
-		assertEquals(16, moves.size());
+		assertEquals(26, moves.size());
 		int count = 0;
 		for (int[] move : moves) {
 			String move1 = Position.moveToNotation(move);
 			Position pos5temp = new Position(pos5);
 			pos5temp.move(move1);
 			Set<int[]> moves2 = pos5temp.validMoves();
-			if(moves2.size() == 5) continue;
 			System.out.println(pos5temp);
 			for(int[] move2 : moves2) {
 				count++;
 				System.out.println(count + ". " + move1 + ", " + Position.moveToNotation(move2));
 			}
 		}
+		fail("There are 4 extra moves here - castling through check");
 		
 		Position pos6 = Position.fromFEN("4k3/8/8/8/8/8/8/2R1K3 b - - 1 1");
 		moves = pos6.validMoves();

@@ -54,7 +54,7 @@ public class PerftRunner {
 	}
 	
 	@Test
-	public void testLevel3() throws FENException, IOException {
+	public void testLevel2() throws FENException, IOException {
 		testLoadEpd();
 		String line;
 		int count = 0;
