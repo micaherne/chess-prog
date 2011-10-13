@@ -501,9 +501,10 @@ public class Position implements Cloneable {
 	 * @return
 	 */
 	public boolean attacks(int source, int target) {
-		if (empty(source))
+		if (empty(source)) {
 			return false;
-		if ((board[source] & COLOUR) == (board[target] & COLOUR)) {
+		}
+		if (!empty(target) && (board[source] & COLOUR) == (board[target] & COLOUR)) {
 			return false;
 		}
 		int direction = direction(source, target);
