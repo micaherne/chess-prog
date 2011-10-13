@@ -67,6 +67,10 @@ public class PerftRunner {
 		}
 	}
 	
-	
+	@Test
+	public void testDivide() throws FENException {
+		Position pos = Position.fromFEN("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1");
+		System.out.println(Perft.divide(pos, 3));
+	}
 
 }

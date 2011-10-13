@@ -29,5 +29,18 @@ public class Perft {
 		}
 		return nodes;
 	}
+	
+	public static String divide(Position pos, int depth) {
+		StringBuilder result = new StringBuilder();
+		for(int[] move : pos.validMoves()) {
+			Position pos2 = new Position(pos);
+			pos2.move(move);
+			String moveStr = Position.moveToNotation(move);
+			result.append(String.format("%1$-6s", moveStr));
+			result.append(perft(pos2, depth - 1));
+			result.append("\n");
+		}
+		return result.toString();
+	}
 
 }
