@@ -9,10 +9,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.crypto.EncryptedPrivateKeyInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.co.micaherne.FENException;
+import uk.co.micaherne.eighteight.perft.Perft;
 
 public class PositionTest{
 
@@ -43,6 +46,8 @@ public class PositionTest{
 	public void testSquareNo() {
 		int e4 = Position.squareNo(3, 4);
 		assertEquals(0x34, e4);
+		int c6 = Position.squareNo(5, 2);
+		assertEquals(0x52, c6);
 	}
 	
 	@Test
@@ -80,8 +85,16 @@ public class PositionTest{
 		assertEquals(Position.CAN_CASTLE, pos.board[0x00] & Position.CAN_CASTLE);
 		assertEquals(0, pos.board[0x01] & Position.CAN_CASTLE);
 		assertTrue(pos.whiteToMove);
+		
+		String fenPart = "c6";
+		int a = Position.squareNo(Integer.parseInt("" + fenPart.charAt(1)) - 1,
+				fenPart.charAt(0) - 'a');
+		assertEquals(0x52, a);
+		Position pos2 = Position.fromFEN("r3k2r/p2pqpb1/bn2pnp1/2pP4/1pN1P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq c6 1 1");
+		assertEquals(Position.EP_SQUARE, pos2.board[0x52] & Position.EP_SQUARE);
 	}
-	
+
+
 	@Test
 	public void testToFEN() throws FENException {
 		Position pos = Position.fromFEN(perftPos2);
@@ -103,6 +116,11 @@ public class PositionTest{
 		
 		Position pos2 = Position.fromFEN("r3k2r/8/8/8/8/8/8/3RK2R b KQkq - 0 1");
 		//assertTrue(pos2.attacks(0x03, 0x73)); why is this ok?
+		
+		Position pos3 = Position.fromFEN("8/k7/8/1B6/8/8/8/K5Bb w - - 0 1");
+		//System.out.println(pos3);
+		assertTrue(pos3.attacks(0x06, 0x60));
+		
 		}
 	
 	@Test
@@ -158,6 +176,7 @@ public class PositionTest{
 		
 		assertEquals(Position.DIRECTION_EAST, Position.direction(0x74, 0x75));
 		assertEquals(Position.DIRECTION_SOUTH, Position.direction(0x73, 0x03));
+		assertEquals(Position.DIRECTION_NORTHWEST, Position.direction(0x06, 0x60));
 	}
 	
 	@Test
@@ -198,10 +217,10 @@ public class PositionTest{
 			Position pos5temp = new Position(pos5);
 			pos5temp.move(move1);
 			Set<int[]> moves2 = pos5temp.validMoves();
-			System.out.println(pos5temp);
+			//System.out.println(pos5temp);
 			for(int[] move2 : moves2) {
 				count++;
-				System.out.println(count + ". " + move1 + ", " + Position.moveToNotation(move2));
+				//System.out.println(count + ". " + move1 + ", " + Position.moveToNotation(move2));
 			}
 		}
 		/*Position pos6 = Position.fromFEN("r3k2r/8/8/8/8/8/8/R3K2R w KQk - 0 1");
@@ -213,6 +232,10 @@ public class PositionTest{
 			}
 		}*/
 		
+		Position pos6 = Position.fromFEN("8/8/8/8/8/8/6k1/4K2R b K - 0 1 ");
+		assertEquals(32, Perft.perft(pos6, 2));
+		assertEquals(134, Perft.perft(pos6, 3));
+		assertEquals(2073, Perft.perft(pos6, 4));
 	}
 	
 	@Test
@@ -240,6 +263,11 @@ public class PositionTest{
 		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
 		assertTrue(pos.attacks(0x62, 0x51));
 		assertTrue(pos.isCheck(Position.WHITE));
+		
+		Position pos2 = Position.fromFEN("8/k7/8/1B6/8/8/8/K5Bb w - - 0 1");
+		//System.out.println(pos2);
+		assertTrue(pos2.attacked(0x60, Position.WHITE));
+		//assertTrue(pos2.isCheck(Position.BLACK));
 	}
 	
 	@Test

@@ -8,7 +8,7 @@ import uk.co.micaherne.FENException;
 
 public class Position implements Cloneable {
 
-	byte[] board = new byte[128];
+	public byte[] board = new byte[128];
 	public boolean whiteToMove = true;
 
 	// for undo
@@ -228,7 +228,7 @@ public class Position implements Cloneable {
 		
 		int i = move[0];
 		int j = move[1];
-		
+
 		previousPosition = Arrays.copyOf(board, 128); // if we're using
 														// make/unmake
 		byte pieceMoved = board[i];
@@ -266,7 +266,7 @@ public class Position implements Cloneable {
 		if(move.length == 3 && move[2] != 0) {
 			board[j] = (byte) move[2];
 		} else {
-			board[j] = pieceMoved;
+			board[j] = (byte) (pieceMoved & 63);
 		}
 		board[i] = EMPTY;
 		whiteToMove = !whiteToMove;
@@ -340,9 +340,14 @@ public class Position implements Cloneable {
 		}
 
 		if (!"-".equals(fenParts[3])) {
-			int epSquare = squareNo(fenParts[3].charAt(1),
-					fenParts[3].charAt(0) - 'a');
-			result.board[epSquare] |= EP_SQUARE;
+			try {
+				int epSquare = squareNo(Integer.parseInt("" + fenParts[3].charAt(1)) - 1,
+						fenParts[3].charAt(0) - 'a');
+				result.board[epSquare] |= EP_SQUARE;
+			} catch (NumberFormatException e) {
+				throw new FENException("Invalid e.p. square");
+			}
+			
 		}
 
 		if (fenParts.length > 4) {
@@ -574,7 +579,9 @@ public class Position implements Cloneable {
 		}
 		for (int possible : possibleDirections) {
 			if ((target - source) % possible == 0
-					&& Math.abs(possible) > Math.abs(result)) {
+					&& Math.abs(possible) > Math.abs(result)
+					// next line a hack to prevent 0x06 to 0x60 returning NNE
+					&& ((source + possible) & 0x88) == 0) {
 				result = possible;
 			}
 		}
@@ -733,7 +740,7 @@ public class Position implements Cloneable {
 
 			for (int jump = 1; jump <= jumps; jump++) {
 				int testSquare = square + (forward * jump);
-				if(testSquare < 0 || testSquare >= 128 || (square & 0x88) != 0) break;
+				if((testSquare < 0) || (testSquare >= 128) || (square & 0x88) != 0) break;
 				if (empty(testSquare)) {
 					if ((whiteToMove && (testSquare >>> 4 == 7)
 							|| (!whiteToMove && (testSquare >>> 4 == 0)))) { // queened
@@ -749,10 +756,10 @@ public class Position implements Cloneable {
 			}
 			for (int attack : attacks) {
 				int testSquare = square + attack;
-				if(testSquare < 0 || testSquare >= 128 || (square & 0x88) != 0) continue;
+				if((testSquare < 0) || (testSquare >= 128) || (square & 0x88) != 0) continue;
 				if (empty(testSquare) && (board[testSquare] & EP_SQUARE) == 0)
 					continue;
-				if (((board[testSquare] & EP_SQUARE) != 0)
+				if (((board[testSquare] & EP_SQUARE) == EP_SQUARE)
 						|| (board[testSquare] & COLOUR) != (piece & COLOUR)) {
 					if ((whiteToMove && (testSquare >>> 4 == 7)
 							|| (!whiteToMove && (testSquare >>> 4 == 0)))) { // queened
