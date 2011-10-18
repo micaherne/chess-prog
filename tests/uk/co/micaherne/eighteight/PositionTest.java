@@ -77,6 +77,10 @@ public class PositionTest{
 		//pos2.move("a1c1");
 		pos2.move(new int[] { 0x00, 0x02 });
 		assertEquals(0, pos2.board[0x03]);
+		
+		Position pos3 = Position.fromFEN("r3k2r/p2pqpb1/bn2pnp1/2pPN3/1pB1P3/2N2Q1p/PPPB1PPP/R3K2R b KQkq c6 1 1");
+		pos3.move("d5c6");
+		assertEquals(Position.EMPTY, pos3.board[0x42]);
 	}
 	
 	@Test

@@ -233,6 +233,13 @@ public class Position implements Cloneable {
 														// make/unmake
 		byte pieceMoved = board[i];
 		
+		// if it's an en passent capture, remove the taken pawn
+		if((board[i] & PAWN) == PAWN && (board[j] & EP_SQUARE) == EP_SQUARE) {
+			int fromRank = i >>> 4;
+			int toFile = j & 7;
+			board[squareNo(fromRank, toFile)] = EMPTY;
+		}
+		
 		// reset en passent bits
 		for (int t = 0; t < 128; t++) {
 			if ((t & 0x88) != 0)
@@ -597,7 +604,7 @@ public class Position implements Cloneable {
 	}
 
 	public int alphaBeta(int depth, int alpha, int beta)
-			throws CloneNotSupportedException {
+			 {
 		if (depth == 0) {
 			nodesSearched++;
 			return evaluate();
@@ -606,7 +613,7 @@ public class Position implements Cloneable {
 		int max = Integer.MIN_VALUE;
 		Set<int[]> moves = pseudoValidMoves();
 		for (int[] m : moves) {
-			Position resultingPosition = this.clone();
+			Position resultingPosition = new Position(this);
 			resultingPosition.move(m);
 			if (resultingPosition.whiteToMove) {
 				if (resultingPosition.isCheck(BLACK))

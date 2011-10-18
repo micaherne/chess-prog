@@ -28,7 +28,7 @@
     <jar jarfile="${dist}/lib/MyProject-${DSTAMP}.jar" basedir="${build}"/>-->
 		<jar jarfile="${dist}/lib/chess-prog.jar" basedir="${build}">
 			<manifest>
-				<attribute name="Main-Class" value="uk.co.micaherne.Engine" />
+				<attribute name="Main-Class" value="uk.co.micaherne.eighteight.Engine" />
 			</manifest>
 		</jar>
 		<copy file="chess-prog.bat" tofile="${dist}/chess-prog.bat">
