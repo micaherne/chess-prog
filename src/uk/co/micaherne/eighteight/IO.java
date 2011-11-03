@@ -134,7 +134,7 @@ public class IO {
 		int[] bestMove = new int[] { -1 , -1 };
 		try {
 			AlphaBetaSearch search = new AlphaBetaSearch();
-			bestMove = search.bestMove(currentPosition, 4);
+			bestMove = search.bestMove(currentPosition, 5);
 			doOutput("info nodes " + search.nodesSearched);
 			if(bestMove[0] == -1) {
 				doOutput("quit");
