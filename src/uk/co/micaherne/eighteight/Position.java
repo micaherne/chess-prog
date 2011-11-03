@@ -15,8 +15,8 @@ public class Position implements Cloneable {
 	byte[] previousPosition = new byte[128];
 	private int halfmove = 0;
 	private int fullmove = 1;
-	public int nodesSearched;
 	public int[] bestMove;
+	
 
 	public static final byte BLACK = 0;
 	public static final byte WHITE = 32;
@@ -131,7 +131,7 @@ public class Position implements Cloneable {
 	}
 
 	public void initialPosition() {
-		board = initPositionBoard;
+		board = Arrays.copyOf(initPositionBoard, 128);
 		whiteToMove = true;
 		fullmove = 1;
 		halfmove = 0;
@@ -595,50 +595,8 @@ public class Position implements Cloneable {
 		return result;
 	}
 
-	public int[] bestMove(int depth) throws CloneNotSupportedException {
-		nodesSearched = 0;
-		bestMove = null;
-		// negaMax(4);
-		alphaBeta(depth, -200000, 200000);
-		return bestMove;
-	}
 
-	public int alphaBeta(int depth, int alpha, int beta)
-			 {
-		if (depth == 0) {
-			nodesSearched++;
-			return evaluate();
-		}
-		int localalpha = alpha;
-		int max = Integer.MIN_VALUE;
-		Set<int[]> moves = pseudoValidMoves();
-		for (int[] m : moves) {
-			Position resultingPosition = new Position(this);
-			resultingPosition.move(m);
-			if (resultingPosition.whiteToMove) {
-				if (resultingPosition.isCheck(BLACK))
-					continue;
-			} else {
-				if (resultingPosition.isCheck(WHITE))
-					continue;
-			}
-			int score = -resultingPosition.alphaBeta(depth - 1, -beta,
-					-localalpha);
-			if (score > max) {
-				max = score;
-				bestMove = m;
-			}
-			if (max >= beta) {
-				break;
-			}
-			if (max > localalpha) {
-				localalpha = max;
-			}
-		}
-		return max;
-	}
-
-	private int evaluate() {
+	public int evaluate() {
 		int centipawns = 0;
 		byte sideToMove;
 		if (whiteToMove) {
@@ -910,12 +868,6 @@ public class Position implements Cloneable {
 		result.append(Character.toChars('a' + file));
 		result.append(rank + 1);
 		return result.toString();
-	}
-
-	@Override
-	protected Position clone() throws CloneNotSupportedException {
-		// TODO Auto-generated method stub
-		return (Position) super.clone();
 	}
 
 

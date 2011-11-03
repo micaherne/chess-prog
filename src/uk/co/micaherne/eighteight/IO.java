@@ -76,14 +76,8 @@ public class IO {
 		if("ucinewgame".equals(keyword)) {
 			commandUciNewGame(input);
 		}
-		if("position".equals(keyword)) {
-			// TODO: Proper error handling
-				try {
-					commandPosition(input);
-				} catch (NotationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		if ("position".equals(keyword)) {
+			commandPosition(input);
 		}
 		if("go".equals(keyword)) {
 			commandGo(input);
@@ -114,7 +108,7 @@ public class IO {
 	}
 	
 	/*position [fen <fenstring> | startpos ]  moves <move1> .... <movei>*/
-	private void commandPosition(String input) throws UCIException, NotationException {
+	private void commandPosition(String input) throws UCIException{
 		String[] tokens = input.split("\\s+");
 		if(!"position".equals(tokens[0])){
 			throw new UCIException();
@@ -137,14 +131,16 @@ public class IO {
 	}
 	
 	private void commandGo(String input) {
-		int[] bestMove;
+		int[] bestMove = new int[] { -1 , -1 };
 		try {
-			bestMove = currentPosition.bestMove(5);
-			doOutput("info nodes " + currentPosition.nodesSearched);
-			if(bestMove == null) {
+			AlphaBetaSearch search = new AlphaBetaSearch();
+			bestMove = search.bestMove(currentPosition, 4);
+			doOutput("info nodes " + search.nodesSearched);
+			if(bestMove[0] == -1) {
 				doOutput("quit");
 			} else {
-				doOutput("bestmove " + currentPosition.moveToNotation(bestMove));
+				doOutput("info bestmove: " + bestMove[0] + ", " + bestMove[1]);
+				doOutput("bestmove " + Position.moveToNotation(bestMove));
 				currentPosition.move(bestMove);
 			}
 		} catch (Exception e) {

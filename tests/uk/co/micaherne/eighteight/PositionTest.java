@@ -251,6 +251,7 @@ public class PositionTest{
 	@Test
 	public void testMoveToNotation() {
 		assertEquals("e2e4", Position.moveToNotation(new int[] { 0x14, 0x34 }));
+		assertEquals("f6g6", Position.moveToNotation(new int[] { 0x55, 0x56 }));
 	}
 	
 	@Test
@@ -273,18 +274,36 @@ public class PositionTest{
 		assertTrue(pos2.attacked(0x60, Position.WHITE));
 		//assertTrue(pos2.isCheck(Position.BLACK));
 	}
+		
+	@Test
+	public void testCopy() throws FENException, CloneNotSupportedException {
+		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
+		Position pos2 = new Position(pos);
+		pos2.move(new int[] { 0x14, 0x34 });
+		assertEquals(Position.WHITE | Position.PAWN, pos.board[0x14]);
+		assertTrue(pos2.whiteToMove);
+		assertFalse(pos.whiteToMove);
+	}
 	
 	@Test
-	public void testClone() throws FENException, CloneNotSupportedException {
-		Position pos = Position.fromFEN("8/2p5/1K1p4/1P5r/1R3p1k/8/4P1P1/8 b - - 0 1 ");
-		Position pos2 = pos.clone();
-		pos2.move(new int[] { 0x14, 0x34 });
+	public void testEvaluate() throws FENException {
+		Position pos = Position.fromFEN("4k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQk - 0 1");
+		assertEquals(510, pos.evaluate());
+		pos.whiteToMove = false;
+		assertEquals(-510, pos.evaluate());
+		Position pos2 = new Position();
+		pos2.initialPosition();
+		assertEquals(0, pos2.evaluate());
 	}
 	
 	@Test
 	public void testBestMove() throws FENException, CloneNotSupportedException {
 		Position pos = Position.fromFEN(perftPos2);
 		assertEquals(perftPos2, pos.toFEN(false));
+		AlphaBetaSearch search = new AlphaBetaSearch();
+		int[] a = search.bestMove(pos, 1);
+		assertEquals(48, search.nodesSearched);
+		System.out.println(Position.moveToNotation(a));
 	}
 	
 
