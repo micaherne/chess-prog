@@ -24,6 +24,7 @@ public class AlphaBetaSearch {
 		int localalpha = alpha;
 		int max = Integer.MIN_VALUE;
 		Set<int[]> moves = position.pseudoValidMoves();
+		int validMoveCount = 0;
 		for (int[] m : moves) {
 			Position resultingPosition = new Position(position);
 			resultingPosition.move(m);
@@ -36,6 +37,7 @@ public class AlphaBetaSearch {
 					continue;
 				}
 			}
+			validMoveCount++;
 			int score = - alphaBeta(resultingPosition, depth - 1, -beta,
 					-localalpha);
 			if (score > max) {
@@ -47,6 +49,16 @@ public class AlphaBetaSearch {
 			}
 			if (max > localalpha) {
 				localalpha = max;
+			}
+		}
+		if(validMoveCount == 0) {
+			// either mate or stalemate
+			if(position.whiteToMove && position.isCheck(Position.WHITE)) {
+				return - 20000;
+			} else if(!position.whiteToMove && position.isCheck(Position.BLACK)) {
+				return - 20000;
+			} else {
+				return 0;
 			}
 		}
 		return max;

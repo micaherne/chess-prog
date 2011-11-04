@@ -304,6 +304,8 @@ public class PositionTest{
 		int[] a = search.bestMove(pos, 1);
 		assertEquals(48, search.nodesSearched);
 		System.out.println(Position.moveToNotation(a));
+		
+		
 	}
 	
 
