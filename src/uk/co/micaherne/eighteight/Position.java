@@ -609,28 +609,8 @@ public class Position implements Cloneable {
 				continue;
 			if (empty(i))
 				continue;
-			int pieceValue = 0;
-
-			switch (board[i] & 31) {
-			case ROOK:
-				pieceValue = 510;
-				break;
-			case KNIGHT:
-				pieceValue = 300;
-				break;
-			case BISHOP:
-				pieceValue = 325;
-				break;
-			case QUEEN:
-				pieceValue = 940;
-				break;
-			case KING:
-				pieceValue = 2000;
-				break;
-			case PAWN:
-				pieceValue = 100;
-				break;
-			}
+			
+			int pieceValue = PieceSquareTables.pieceValue(board[i], i);
 
 			if ((board[i] & COLOUR) == sideToMove) {
 				centipawns += pieceValue;
