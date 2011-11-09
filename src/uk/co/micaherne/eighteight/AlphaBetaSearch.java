@@ -3,6 +3,8 @@ package uk.co.micaherne.eighteight;
 import java.util.Set;
 
 public class AlphaBetaSearch {
+	
+	public static TranspositionTable transpositionTable = new TranspositionTable();
 
 	public int nodesSearched = 0;
 	
@@ -11,7 +13,6 @@ public class AlphaBetaSearch {
 		position.bestMove = new int[] { -1, -1 };
 		// negaMax(4);
 		alphaBeta(position, depth, -200000, 200000);
-		System.out.println("Best move: " + Position.moveToNotation(position.bestMove));
 		return position.bestMove;
 	}
 
@@ -20,6 +21,12 @@ public class AlphaBetaSearch {
 		if (depth == 0) {
 			nodesSearched++;
 			return position.evaluate();
+		}
+		if(transpositionTable.containsKey(position)) {
+			PositionEvaluation previousEvaluation = transpositionTable.get(position);
+			if(previousEvaluation.depth >= depth) {
+				return previousEvaluation.value;
+			}
 		}
 		int localalpha = alpha;
 		int max = Integer.MIN_VALUE;
@@ -61,6 +68,8 @@ public class AlphaBetaSearch {
 				return 0;
 			}
 		}
+		// Add to transposition table
+		transpositionTable.put(position, new PositionEvaluation(max, depth));
 		return max;
 	}
 

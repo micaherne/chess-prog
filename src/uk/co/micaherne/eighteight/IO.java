@@ -139,8 +139,8 @@ public class IO {
 			if(bestMove[0] == -1) {
 				doOutput("quit");
 			} else {
-				doOutput("info bestmove: " + bestMove[0] + ", " + bestMove[1]);
 				doOutput("bestmove " + Position.moveToNotation(bestMove));
+				doOutput("info transposition table size " + search.transpositionTable.size());
 				currentPosition.move(bestMove);
 			}
 		} catch (Exception e) {
