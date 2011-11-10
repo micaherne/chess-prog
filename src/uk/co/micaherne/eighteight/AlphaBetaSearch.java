@@ -25,6 +25,7 @@ public class AlphaBetaSearch {
 		if(transpositionTable.containsKey(position)) {
 			PositionEvaluation previousEvaluation = transpositionTable.get(position);
 			if(previousEvaluation.depth >= depth) {
+				position.bestMove = previousEvaluation.bestMove;
 				return previousEvaluation.value;
 			}
 		}
