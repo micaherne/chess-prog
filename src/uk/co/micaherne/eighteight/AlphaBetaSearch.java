@@ -69,7 +69,7 @@ public class AlphaBetaSearch {
 			}
 		}
 		// Add to transposition table
-		transpositionTable.put(position, new PositionEvaluation(max, depth));
+		transpositionTable.put(position, new PositionEvaluation(max, depth, position.bestMove));
 		return max;
 	}
 
